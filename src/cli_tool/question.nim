@@ -1,4 +1,4 @@
-type Layout = enum 
+type Layout = enum
   table
   list
   grid
