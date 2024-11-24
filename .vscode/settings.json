@@ -1,0 +1,6 @@
+{
+  "[nim]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "NimLang.nimlang"
+  }
+}
