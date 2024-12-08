@@ -1,0 +1,62 @@
+{
+  "deps": "",
+  "overrides": "",
+  "plugins": "",
+  "resolver": "SemVer",
+  "graph": {
+    "nodes": [
+      {
+        "pkg": {
+          "projectName": "cli_tool",
+          "u": "git@github.com:NabeKz/cli-tool.git"
+        },
+        "versions": [
+          {
+            "version": "#head",
+            "commit": "",
+            "req": 2,
+            "v": 0
+          }
+        ],
+        "active": true,
+        "isRoot": true,
+        "isTopLevel": true,
+        "status": 0,
+        "activeVersion": 0,
+        "ondisk": "/home/kazuya/cli_tool"
+      }
+    ],
+    "reqs": [
+      {
+        "deps": [],
+        "hasInstallHooks": false,
+        "srcDir": "",
+        "version": "",
+        "nimVersion": "",
+        "v": -1,
+        "status": 0,
+        "err": ""
+      },
+      {
+        "deps": [],
+        "hasInstallHooks": false,
+        "srcDir": "",
+        "version": "",
+        "nimVersion": "",
+        "v": -1,
+        "status": 2,
+        "err": ""
+      },
+      {
+        "deps": [],
+        "hasInstallHooks": false,
+        "srcDir": "src",
+        "version": "0.1.0",
+        "nimVersion": "2.2.0",
+        "v": 1,
+        "status": 0,
+        "err": ""
+      }
+    ]
+  }
+}

@@ -20,3 +20,8 @@ task cleanup, "cleanup binary":
     let path = src.split(".")
     if path.len == 1:
       rmFile path[0]
+
+
+task format, "format":
+  exec """nimpretty src/*"""
+

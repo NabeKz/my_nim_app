@@ -1,7 +1,7 @@
 {
   "[nim]": {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "NimLang.nimlang"
+    "editor.defaultFormatter": "NimLang.nimlang",
   },
-  "nim.lintOnSave": true
+  "nim.formatOnSave": true,
 }

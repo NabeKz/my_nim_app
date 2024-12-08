@@ -1,15 +1,15 @@
-import std/httpcore
 import std/asynchttpserver
 import std/asyncdispatch
-import std/strutils
-import std/macros
 
+import ./handler
 
-proc httpGet(self: Request): string =
-  if self.reqMethod == HttpMethod.HttpGet:
-    result = "this is get request"
+proc router*(req: Request) {.async.} =
+  list "/users":
+    await req.respond(Http200, $Http200)
+  create "/users":
+    let body = req.body
+    await req.respond(Http200, body)
+  read "/users", id:
+    await req.respond(Http200, id)
 
-proc routes*(req: Request): string =
-  case req.reqMethod:
-  of HttpMethod.HttpGet: httpGet req
-  else: $Http404
+  await req.respond(Http404, $Http404)
