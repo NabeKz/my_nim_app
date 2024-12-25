@@ -1,39 +1,21 @@
 import std/macros
 import std/sequtils
+import std/strformat
 
-type
-  Pragma = object
-    name: string
-    params: seq[string]
-  
-  Field = object
-    name: string
-    pragmas: seq[Pragma]
+type ValidationMessage* = ref object
 
-func newField(node: NimNode): Pragma = 
-  if node.kind == nnkSym:
-    let name = node[0].repr
-    Pragma(name: name, params: @[])
-  if node.kind == nnkCall:
-    let name = node[0].repr
-    let parmas = toSeq(node[1..^1]).mapIt(it.repr)
-    Pragma(name: name, params: params)
+template required*(){.pragma.}
+func required*(field: string): bool = field.len > 0
+func required*(_: type ValidationMessage, field: string): string = &"{field} is required"
 
-    
-func newField(node: NimNode): seq[Field] = 
-  for n in node:
-    let name = n[0].repr
-    let pragmas = toSeq(n.children).newField()
-    result.add Field(name: name, pragmas: pragmas)
+template email*(){.pragma.}
+func email*(field: string): bool = field.len > 0
+func email*(_: type ValidationMessage, field: string): string = &"{field} is invalid email format"
 
+template between*(a, b: int){.pragma.}
+func between*(field: int, a, b: int): bool = field > a and field < b
+func between*(_: type ValidationMessage, field: string, a, b: int): string = &"{field} must bee between {a} and {b}"
 
-macro generateValidation(t: typedesc): untyped =
-  let impl = t.getTypeInst()[1].getImpl()
-  let recList = impl[2][0][2]
-  let fields = toSeq(recList.children).mapIt(newField(it))
-  let self = ident("self")
-  let t = ident($t)
-  quote do:
-    func validate*(`self`: `t`): seq[string] =
-      @[]
-
+template minmax*(a, b: int){.pragma.}
+func minmax*(field: string, a, b: int): bool = field.len > a and field.len < b
+func minmax*(_: type ValidationMessage, field: string, a, b: int): string = &"{field}'s len must be between {a} and {b}"

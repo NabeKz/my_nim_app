@@ -24,6 +24,32 @@
         "status": 0,
         "activeVersion": 0,
         "ondisk": "/home/kazuya/cli_tool"
+      },
+      {
+        "pkg": {
+          "projectName": "db_connector",
+          "u": "https://github.com/nim-lang/db_connector"
+        },
+        "versions": [
+          {
+            "version": "#head",
+            "commit": "",
+            "req": 3,
+            "v": 1
+          },
+          {
+            "version": "0.1.0",
+            "commit": "c77cffdfed0b5a74dc10f599206c5a883778af0d",
+            "req": 3,
+            "v": 2
+          }
+        ],
+        "active": true,
+        "isRoot": true,
+        "isTopLevel": false,
+        "status": 0,
+        "activeVersion": 1,
+        "ondisk": "/home/kazuya/cli_tool/db_connector"
       }
     ],
     "reqs": [
@@ -48,12 +74,40 @@
         "err": ""
       },
       {
-        "deps": [],
+        "deps": [
+          [
+            {
+              "projectName": "db_connector",
+              "u": "https://github.com/nim-lang/db_connector"
+            },
+            {
+              "a": {
+                "r": 5,
+                "v": "#head"
+              },
+              "b": {
+                "r": 0,
+                "v": ""
+              },
+              "isInterval": false
+            }
+          ]
+        ],
         "hasInstallHooks": false,
         "srcDir": "src",
         "version": "0.1.0",
         "nimVersion": "2.2.0",
-        "v": 1,
+        "v": 3,
+        "status": 0,
+        "err": ""
+      },
+      {
+        "deps": [],
+        "hasInstallHooks": false,
+        "srcDir": "src",
+        "version": "0.1.0",
+        "nimVersion": "1.7.3",
+        "v": 4,
         "status": 0,
         "err": ""
       }

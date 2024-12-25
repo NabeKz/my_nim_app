@@ -11,7 +11,7 @@ bin           = @["cli_tool"]
 
 # Dependencies
 
-requires "nim >= 2.2.0"
+requires "nim >= 2.2.0", "db_connector"
 
 import os
 import std/strutils
