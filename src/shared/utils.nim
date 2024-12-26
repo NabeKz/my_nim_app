@@ -29,13 +29,11 @@ func findChildRec(node: seq[NimNode], kind: NimNodeKind): NimNode =
     if not child.isNil:
       return child
     if child.isNil and n.len > 0:
-      result = findChildRec(toSeq(n.children), kind)
-    if child.isNil and n.len == 0:
-      result = n
+      return findChildRec(toSeq(n.children), kind)
 
 
 func findChildRec(node: NimNode, kind: NimNodeKind): NimNode = 
-  result = findChildRec(toSeq(node), kind)
+  findChildRec(toSeq(node), kind)
 
 
 func getNameField(n: NimNode): NimNode =
