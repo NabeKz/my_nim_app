@@ -10,28 +10,28 @@ func findChildRec(node: seq[NimNode], kind: NimNodeKind): NimNode =
   for n in node:
     let child = findChild(n, it.kind == kind)
     if not child.isNil:
-      result = child
+      return child
     if child.isNil and n.len > 0:
       result = findChildRec(toSeq(n.children), kind)
     if child.isNil and n.len == 0:
-      result = nil
+      result = n
 
 func findChildRec(node: NimNode, kind: NimNodeKind): NimNode = 
-  result = findChildRec(toSeq(node), kind)
+  result = findChildRec(toSeq(node.children), kind)
   
 
 func getNameField(n: NimNode): NimNode =
   case n.kind:
-  of  nnkIdentDefs: 
-    result = getNameField(n[0])
+  of nnkIdentDefs: 
+    getNameField(n[0])
   of nnkIdent:
-    result = n
+    n
   of nnkPostfix:
-    result = n[1]
+    n[1]
   of nnkPragmaExpr:
-    result = getNameField(n[0])
+    getNameField(n[0])
   else:
-    result = nil
+    nil
 
 func newField(identDefs: NimNode): Field =
   let name = getNameField(identDefs)
