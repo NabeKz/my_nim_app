@@ -4,12 +4,7 @@ import std/strutils
 import std/strformat
 import std/macros
 
-import src/validation/[factory, rules]
 import src/shared/utils
-
-type UnValidateForm = ref object
-  name*{.required.}: string
-  age: int
 
 
 proc toJson*(body: string): JsonNode =
@@ -19,6 +14,7 @@ proc toJson*(body: string): JsonNode =
     parseJson "{}"
 
 func getNameField(node: NimNode): NimNode =
+  node.expectKind {nnkPragmaExpr, nnkPostfix, nnkIdent}
   if node.kind == nnkPragmaExpr:
     result = getNameField(node[0])
   if node.kind == nnkPostfix:
@@ -44,10 +40,13 @@ macro generateUnmarshal*(t: typedesc): untyped =
     """
 
 
-
 when isMainModule:
   let body = """{"name": 1}"""
   let jsonNode = body.toJson()
+  type UnValidateForm = ref object
+    name*: string
+    age: int
+
 
   generateUnmarshal(UnValidateForm)
 

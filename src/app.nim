@@ -7,7 +7,7 @@ type App = ref object
 
 type Callback = proc (request: Request): Future[void]{.closure, gcsafe.}
 
-func newApp():App =
+func newApp(): App =
   App(server: newAsyncHttpServer())
 
 
@@ -17,7 +17,7 @@ proc router(req: Request) {.async.} =
   })
   await req.respond(Http200, "ok", headers)
 
-proc run(self: App) {.async.} = 
+proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
 
   while true:

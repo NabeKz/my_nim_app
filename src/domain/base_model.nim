@@ -10,7 +10,7 @@ type ReadModel* = concept x
 
 
 proc parseJsonBody*(body: string): JsonNode =
-  try: 
+  try:
     parseJson body
   except:
     parseJson "{}"

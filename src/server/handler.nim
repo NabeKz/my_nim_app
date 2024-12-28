@@ -10,7 +10,7 @@ type ContentType = enum
   json = "application/json"
 
 
-func newHttpHeaders(contentType: ContentType): HttpHeaders = 
+func newHttpHeaders(contentType: ContentType): HttpHeaders =
   newHttpHeaders([("ContentType", $contentTYpe)])
 
 proc json*(req: Request, code: HttpCode, content: ref object): Future[void] =
@@ -20,7 +20,7 @@ proc json*(req: Request, code: HttpCode, content: ref object): Future[void] =
 
 proc text*(req: Request, code: HttpCode, content: string): Future[void] =
   let headers = newHttpHeaders(ContentType.text)
-  
+
   req.respond(code, content, headers)
 
 

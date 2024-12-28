@@ -1,75 +1,88 @@
 import std/macros
 import std/sequtils
-import std/strutils
-import std/strformat
+import src/shared/utils
+import src/validation/rules
+
+export rules
 
 type
   Pragma = object
-    name: string
-    call: string
-    params: string
-  
+    name: NimNode
+    params: seq[NimNode]
+
   Field = object
-    name: string
+    name: NimNode
     pragmas: seq[Pragma]
 
-func newPragma(node: NimNode): Pragma{.compileTime.} = 
+
+func newPragma(node: NimNode): Pragma{.compileTime.} =
   if node.kind == nnkSym:
-    let name, call = node.repr
-    result = Pragma(name: name, call: call)
+    result = Pragma(name: node)
   if node.kind == nnkCall:
-    let params = toSeq(node[1..^1]).mapIt(it.repr).join(",")
-    result = Pragma(name: node[0].repr, call: node.repr, params: params)
+    let params = node[1..^1]
+    result = Pragma(name: node[0], params: params)
 
-template findChildRec(node: NimNode, kinds: varargs[NimNodeKind]): untyped =
-  var child = node
-  for kind in kinds:
-    child = findChild(child, it.kind == kind)
-  child
 
-func getName(n: NimNode): NimNode = 
-  if n.kind == nnkPostfix:
-    result = n[1]
-  if n.kind == nnkIdent:
-    result = n
+func call(node: NimNode, self: Pragma): NimNode =
+  node.newCall(self.params)
 
-func newField(identDefs: NimNode): Field{.compileTime.}  = 
-  let pragmaExpr = findChildRec(identDefs, nnkPragmaExpr)
-  let name = getName(pragmaExpr[0])
-  let pragmaNode = findChild(pragmaExpr, it.kind == nnkPragma)
+func call(node: NimNode, lit: NimNode, self: Pragma): NimNode =
+  node.newCall(newLit lit.repr).add(self.params)
+
+
+func getNameField(n: NimNode): NimNode =
+  case n.kind:
+  of nnkIdentDefs:
+    getNameField(n[0])
+  of nnkIdent:
+    n
+  of nnkPostfix:
+    n[1]
+  of nnkPragmaExpr:
+    getNameField(n[0])
+  else:
+    nil
+
+func newField(identDefs: NimNode): Field =
+  identDefs.expectKind nnkIdentDefs
+  let name = getNameField(identDefs)
+  let pragmaNode = findChildRec(identDefs, nnkPragma)
   let pragmas = toSeq(pragmaNode.children).mapIt(newPragma it)
-  Field(name: name.repr, pragmas: pragmas)
+  Field(name: name, pragmas: pragmas)
 
 
 macro generateValidation*(t: typedesc): untyped =
-  let impl = getTypeInst(t)[1].getImpl()
-  let recList = findChildRec(impl, nnkRefTy, nnkObjectTy, nnkRecList)
+  let impl = getImpl(t)
+  let recList = findChildRec(impl, nnkRecList)
   let fields = toSeq(recList.children).mapIt(newField(it))
-  debugEcho fields.repr
 
-  var stmtList = newStmtList()
+  let self = ident("self")
+  result = newStmtList()
+  result.add quote do:
+    func validate*(`self`: `t`): seq[string] =
+      result = newSeqOfCap[string](20)
+
   for field in fields:
     for pragma in field.pragmas:
-      let fn = &"""
-      if not self.{field.name}.{pragma.call}:
-        result.add ValidationMessage.{pragma.name}("{field.name}", {pragma.params})
-      """
-      stmtList.add parseStmt(fn)
-  let self = ident("self")
-  let t = ident($t)
-  quote do:
-    func validate*(`self`: `t`): seq[string] =
-      `stmtList`
+      let call = self.chain(field.name, pragma.name).call(pragma)
+      let val = ident("ValidationMessage")
+      let message = val.chain(pragma.name).call(field.name, pragma)
+
+      result[0][^1].add quote do:
+        if not `call`:
+          result.add `message`
+
+
 
 when isMainModule:
-  import ./rules
+  import std/unittest
 
   type User = ref object
-    name{.required, minmax(1, 2).}: string
+    name{.required, minmax(1,2).}: string
 
+  func required*(self: User): bool = true
   generateValidation(User)
-
-  echo User().validate()
+  check User().validate() == @["name is required", "name\'s len must be between 1 and 2"]
 
 # StmtList
 #   TypeSection
