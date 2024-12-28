@@ -1,58 +1,41 @@
-import std/json
-import std/sequtils
-import std/strutils
-import std/strformat
-import std/macros
-
-import src/validation/[factory, rules]
-import src/shared/utils
+import src/shared/port/http
+import src/feature/user/model
 
 type UnValidateForm = ref object
-  name*{.required.}: string
+  name: string
   age: int
 
+generateUnmarshal(UnValidateForm)
 
-proc toJson*(body: string): JsonNode =
-  try:
-    parseJson body
-  except:
-    parseJson "{}"
 
-func getNameField(node: NimNode): NimNode =
-  if node.kind == nnkPragmaExpr:
-    result = getNameField(node[0])
-  if node.kind == nnkPostfix:
-    result = node[1]
-  if node.kind == nnkIdent:
-    result = node
-
-func getVal(j: JsonNode, _: type string): string = j.getStr()
-func getVal(j: JsonNode, _: type int): int = j.getInt()
-
-macro generateUnmarshal*(t: typedesc): untyped =
-  let impl = getImpl(t)
-  let recList = findChildRec(impl, nnkRecList)
-  let fields = recList.mapIt((getNameField(it[0]).repr, it[1].repr))
-  result = newStmtList()
-  result.add quote do:
-    proc unmarshal(jsonNode: JsonNode): `t` =
-      result = `t`()
-  for (key, val) in fields:     
-    result[0][^1].add parseStmt &"""
-    if jsonNode.hasKey("{key}"):
-      result.{key} = jsonNode["{key}"].getVal({val})
-    """
+proc to*(body: string, t: type User): User =
+  let form = body.toJson().unmarshal()
+  let user = newUser(name = form.name)
+  let errors = user.validate()
+  if errors.len > 0:
+    raise newException(ValueError, $errors)
+  else:
+    user
 
 
 
 when isMainModule:
-  let body = """{"name": 1}"""
-  let jsonNode = body.toJson()
+  import std/unittest
+  block:
+    let body = """{"name": 1}"""
+    let jsonNode = body.toJson()
 
-  generateUnmarshal(UnValidateForm)
+    check body.to(User).name == ""
+  
+  block:
+    let body = """{"name": "hoge"}"""
+    let jsonNode = body.toJson()
 
-  let f = unmarshal(jsonNode)
-  echo ( %* f)
+    check body.to(User).name == "hoge"
+
+  block:
+    let user = newUser(name = "")
+    debugEcho user.validate()
 
 # StmtList
   # TypeSection

@@ -1,9 +1,9 @@
 import std/macros
 import std/sequtils
 import src/shared/utils
-import src/validation/rules
+import src/shared/port/validation_rules
 
-export rules
+export validation_rules
 
 type
   Pragma = object
@@ -49,11 +49,11 @@ func newField(identDefs: NimNode): Field =
   let pragmaNode = findChildRec(identDefs, nnkPragma)
   let pragmas = toSeq(pragmaNode.children).mapIt(newPragma it)
   Field(name: name, pragmas: pragmas)
-
+  
 
 macro generateValidation*(t: typedesc): untyped =
   let impl = getImpl(t)
-  let recList = findChildRec(impl, nnkRecList)
+  let recList = impl[2][0][2]
   let fields = toSeq(recList.children).mapIt(newField(it))
 
   let self = ident("self")
@@ -76,34 +76,34 @@ macro generateValidation*(t: typedesc): untyped =
 
 when isMainModule:
   import std/unittest
+  type User* = ref object of RootObj
+    name{.required.}: string
+    age: int
 
-  type User = ref object
-    name{.required, minmax(1,2).}: string
-
-  func required*(self: User): bool = true
   generateValidation(User)
-  check User().validate() == @["name is required", "name\'s len must be between 1 and 2"]
+  check User().validate() == @["name is required"]
 
 # StmtList
 #   TypeSection
 #     TypeDef
-#       Ident "User"
+#       Postfix
+#         Ident "*"
+#         Ident "User"
 #       Empty
 #       RefTy
 #         ObjectTy
 #           Empty
-#           Empty
+#           OfInherit
+#             Ident "RootObj"
 #           RecList
 #             IdentDefs
 #               PragmaExpr
-#                 Postfix
-#                   Ident "*"
-#                   Ident "name"
+#                 Ident "name"
 #                 Pragma
 #                   Ident "required"
-#                   Call
-#                     Ident "minmax"
-#                     IntLit 1
-#                     IntLit 2
 #               Ident "string"
+#               Empty
+#             IdentDefs
+#               Ident "age"
+#               Ident "int"
 #               Empty

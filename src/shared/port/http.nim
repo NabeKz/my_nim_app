@@ -1,11 +1,18 @@
 import std/json
 import std/sequtils
-import std/strutils
 import std/strformat
 import std/macros
 
 import src/shared/utils
+export json
 
+type
+  ResultKind {.pure.} = enum
+    kOk, kErr
+
+  Result*[T] = tuple
+    value: T
+    errors: seq[string]
 
 proc toJson*(body: string): JsonNode =
   try:
@@ -22,16 +29,17 @@ func getNameField(node: NimNode): NimNode =
   if node.kind == nnkIdent:
     result = node
 
-func getVal(j: JsonNode, _: type string): string = j.getStr()
-func getVal(j: JsonNode, _: type int): int = j.getInt()
+func getVal*(j: JsonNode, _: type string): string = j.getStr()
+func getVal*(j: JsonNode, _: type int): int = j.getInt()
 
 macro generateUnmarshal*(t: typedesc): untyped =
   let impl = getImpl(t)
   let recList = findChildRec(impl, nnkRecList)
   let fields = recList.mapIt((getNameField(it[0]).repr, it[1].repr))
+  let jsonNode = ident("jsonNode")
   result = newStmtList()
   result.add quote do:
-    proc unmarshal(jsonNode: JsonNode): `t` =
+    proc unmarshal(`jsonNode`: JsonNode): `t` =
       result = `t`()
   for (key, val) in fields:     
     result[0][^1].add parseStmt &"""
@@ -44,7 +52,7 @@ when isMainModule:
   let body = """{"name": 1}"""
   let jsonNode = body.toJson()
   type UnValidateForm = ref object
-    name*: string
+    name: string
     age: int
 
 
