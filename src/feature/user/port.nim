@@ -8,34 +8,32 @@ type UnValidateForm = ref object
 generateUnmarshal(UnValidateForm)
 
 
-proc to*(body: string, t: type User): User =
+proc to*(body: string, t: type User): Result[User] =
   let form = body.toJson().unmarshal()
   let user = newUser(name = form.name)
-  let errors = user.validate()
-  if errors.len > 0:
-    raise newException(ValueError, $errors)
-  else:
-    user
-
+  match(user)
 
 
 when isMainModule:
-  import std/unittest
   block:
     let body = """{"name": 1}"""
     let jsonNode = body.toJson()
+    let user = body.to(User)
+    case user.kind
+    of kOk:
+      echo user.val.name
+    of kErr:
+      echo user.errors
 
-    check body.to(User).name == ""
-  
   block:
     let body = """{"name": "hoge"}"""
     let jsonNode = body.toJson()
-
-    check body.to(User).name == "hoge"
-
-  block:
-    let user = newUser(name = "")
-    debugEcho user.validate()
+    let user = body.to(User)
+    case user.kind
+    of kOk:
+      echo user.val.name
+    of kErr:
+      echo user.errors
 
 # StmtList
   # TypeSection

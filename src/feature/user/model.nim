@@ -16,9 +16,3 @@ func newUser*(name: string): User =
   User(name: name)
 
 func name*(self: User): string = self.name
-
-
-when isMainModule:
-  block:
-    let user = newUser(name = "")
-    debugEcho user.validate()

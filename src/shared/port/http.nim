@@ -7,12 +7,18 @@ import src/shared/utils
 export json
 
 type
-  ResultKind {.pure.} = enum
+  ResultKind* = enum
     kOk, kErr
 
-  Result*[T] = tuple
-    value: T
-    errors: seq[string]
+  Result*[T] = ref object
+    case kind*: ResultKind
+    of kOk:
+      val*: T
+    of kErr:
+      errors*: seq[string]
+      
+  ValidateAble* = concept x
+    x.validate() is seq[string]
 
 proc toJson*(body: string): JsonNode =
   try:
@@ -46,6 +52,16 @@ macro generateUnmarshal*(t: typedesc): untyped =
     if jsonNode.hasKey("{key}"):
       result.{key} = jsonNode["{key}"].getVal({val})
     """
+
+
+macro match*[T](model: T): untyped =
+  let t = getTypeInst(model)
+  quote do:
+    let errors = `model`.validate()
+    if errors.len > 0:
+      Result[`t`](kind: kErr, errors: errors)
+    else:
+      Result[`t`](kind: kOk, val: `model`)
 
 
 when isMainModule:
