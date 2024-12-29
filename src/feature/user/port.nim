@@ -5,56 +5,23 @@ type UnValidateForm = ref object
   name: string
   age: int
 
+type PortDto* = ref object of User
+  id: int64
+
 generateUnmarshal(UnValidateForm)
 
 
-proc to*(body: string, t: type User): Result[User] =
+template handleRequest*(body: string, model, op: untyped): untyped =
   let form = body.toJson().unmarshal()
-  let user = newUser(name = form.name)
-  match(user)
+  let model = newUser(name = form.name)
+  let errors = model.validate()
+  if errors.len > 0:
+    echo "error"
+  else:
+    op
 
 
 when isMainModule:
-  block:
-    let body = """{"name": 1}"""
-    let jsonNode = body.toJson()
-    let user = body.to(User)
-    case user.kind
-    of kOk:
-      echo user.val.name
-    of kErr:
-      echo user.errors
-
-  block:
-    let body = """{"name": "hoge"}"""
-    let jsonNode = body.toJson()
-    let user = body.to(User)
-    case user.kind
-    of kOk:
-      echo user.val.name
-    of kErr:
-      echo user.errors
-
-# StmtList
-  # TypeSection
-    # TypeDef
-      # Ident "UnValidateForm"
-      # Empty
-      # RefTy
-        # ObjectTy
-          # Empty
-          # Empty
-          # RecList
-            # IdentDefs
-              # PragmaExpr
-                # Ident "name"
-                # Pragma
-                  # Ident "required"
-                # Ident "string"
-                # Empty
-              # IdentDefs
-                # Postfix
-                  # Ident "*"
-                  # Ident "age"
-                # Ident "int"
-                # Empty
+  let body = """{"name": "a"}"""
+  handleRequest body, user:
+    echo user.name
