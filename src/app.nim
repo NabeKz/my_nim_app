@@ -1,30 +1,38 @@
 import std/asynchttpserver
 import std/asyncdispatch
 
+import src/feature/user/controller
+import src/feature/user/controller
+import src/shared/db/conn
+
 
 type App = ref object
   server: AsyncHttpServer
 
-type Callback = proc (request: Request): Future[void]{.closure, gcsafe.}
 
-func newApp(): App =
-  App(server: newAsyncHttpServer())
+func newApp(db: DbConn): App =
+  App(
+    server: newAsyncHttpServer(),
+    db: db,
+  )
 
 
 proc router(req: Request) {.async.} =
-  let headers = newHttpHeaders({
-    "Content-Type": "application/json"
-  })
-  await req.respond(Http200, "ok", headers)
+  userController(req, repository(app.db))
+
+  await req.respond(Http404, $Http404)
+
 
 proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
-
   while true:
     if self.server.shouldAcceptRequest():
-      await self.server.acceptRequest(router)
+      await self.server.acceptRequest(proc (req: Request): Future[void] = router(req, self))
     else:
       await sleepAsync(500)
 
-let app = newApp()
+
+
+let db = dbConn("db.sqlite3")
+let app = newApp(db)
 waitFor app.run()

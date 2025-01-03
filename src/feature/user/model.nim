@@ -6,7 +6,7 @@ type User* = ref object of RootObj
 
 
 type UserRepository* = tuple
-  list: proc(): seq[string]
+  list: proc(): seq[User]
   save: proc(user: User): int64
 
 
@@ -16,3 +16,6 @@ func newUser*(name: string): User =
   User(name: name)
 
 func name*(self: User): string = self.name
+
+# HACK: refactor, should not has table name
+func tableName*(self: User): string = "users"

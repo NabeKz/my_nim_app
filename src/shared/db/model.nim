@@ -1,5 +1,12 @@
 import std/macros
 
+type WriteModel* = concept x
+  x.tableName() is string
+
+type ReadModel* = concept x
+  x.tableName() is string
+  x.id is int64
+
 type ResultKind{.pure.} = enum
   kOk, kErr
 
