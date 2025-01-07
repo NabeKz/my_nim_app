@@ -51,9 +51,18 @@ func newField(identDefs: NimNode): Field =
   Field(name: name, pragmas: pragmas)
   
 
+func getObjecty(node: NimNode): NimNode = 
+  node.expectKind nnkTypeDef
+  if node[2].kind == nnkRefTy:
+    node[2][0]
+  else:
+    node[2]
+
+
+
 macro generateValidation*(t: typedesc): untyped =
   let impl = getImpl(t)
-  let recList = impl[2][0][2]
+  let recList = getObjecty(impl)[2]
   let fields = toSeq(recList.children).mapIt(newField(it))
 
   let self = ident("self")
@@ -76,7 +85,8 @@ macro generateValidation*(t: typedesc): untyped =
 
 when isMainModule:
   import std/unittest
-  type User* = ref object of RootObj
+
+  type User* = object of RootObj
     name{.required.}: string
     age: int
 
@@ -107,3 +117,26 @@ when isMainModule:
 #               Ident "age"
 #               Ident "int"
 #               Empty
+# StmtList
+#   TypeSection
+#     TypeDef
+#       Postfix
+#         Ident "*"
+#         Ident "User"
+#       Empty
+#       ObjectTy
+#         Empty
+#         OfInherit
+#           Ident "RootObj"
+#         RecList
+#           IdentDefs
+#             PragmaExpr
+#               Ident "name"
+#               Pragma
+#                 Ident "required"
+#             Ident "string"
+#             Empty
+#           IdentDefs
+#             Ident "age"
+#             Ident "int"
+#             Empty
