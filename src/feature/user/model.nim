@@ -6,8 +6,8 @@ type User* = ref object of RootObj
 
 
 type UserRepository* = tuple
-  list: proc(): seq[User]
-  save: proc(user: User): int64
+  list: proc(): seq[User]{.gcsafe.}
+  save: proc(user: User): int64{.gcsafe.}
 
 
 generateValidation(User)

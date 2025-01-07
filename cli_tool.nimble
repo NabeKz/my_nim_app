@@ -6,7 +6,7 @@ description   = "A new awesome nimble package"
 license       = "MIT"
 srcDir        = "src"
 installExt    = @["nim"]
-bin           = @["cli_tool"]
+bin           = @["app"]
 
 
 # Dependencies

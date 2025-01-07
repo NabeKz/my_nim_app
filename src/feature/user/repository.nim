@@ -17,3 +17,6 @@ func toInterface*(self: UserRdbRepository): UserRepository =
     list: proc(): seq[User] = self.list(),
     save: proc(user: User): int64 = self.create(user)
   )
+
+func newUserRepository*(db: DbConn): UserRepository = 
+  UserRdbRepository(db: db).toInterface()
