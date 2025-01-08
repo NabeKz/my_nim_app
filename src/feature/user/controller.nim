@@ -6,7 +6,8 @@ import src/feature/user/[port, usecase, model, repository]
 
 template userController*(req: Request, repository: UserRepository): untyped =
   list "/users":
-    await req.respond(Http200, $Http200)
+    let users = list(repository)
+    await req.json(Http200, users)
 
   create "/users":
     handleRequest req.body, user:

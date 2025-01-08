@@ -25,3 +25,6 @@ task sweep, "cleanup binary":
 task format, "format":
   exec """nimpretty src/*"""
 
+task db_init, "initialize database":
+  rmFile "db.sqlite3"
+  exec """nim c -r src/shared/db/conn"""

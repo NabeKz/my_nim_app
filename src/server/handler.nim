@@ -13,10 +13,16 @@ type ContentType = enum
 func newHttpHeaders(contentType: ContentType): HttpHeaders =
   newHttpHeaders([("ContentType", $contentTYpe)])
 
-proc json*(req: Request, code: HttpCode, content: ref object): Future[void] =
+proc json*(req: Request, code: HttpCode, content: string): Future[void] =
   let headers = newHttpHeaders(ContentType.json)
+  req.respond(code, content, headers)
+
+proc json*(req: Request, code: HttpCode, content: ref object): Future[void] =
   let c = % content
-  req.respond(code, $c, headers)
+  req.json(code, $c)
+
+proc json*(req: Request, code: HttpCode, content: seq[ref object]): Future[void] =
+  req.json(code, "content")
 
 proc text*(req: Request, code: HttpCode, content: string): Future[void] =
   let headers = newHttpHeaders(ContentType.text)

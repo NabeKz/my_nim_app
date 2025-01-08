@@ -1,0 +1,5 @@
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT CHECK (id > 0),
+  name TEXT CHECK(length(name) < 256),
+  age INTEGER CHECK(age > -1)
+) STRICT;

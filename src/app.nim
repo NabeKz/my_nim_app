@@ -23,6 +23,7 @@ func newApp(db: DbConn): App =
 
 proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
+  echo "server is running at 5000"
   
   proc router(req: Request) {.async.}  =    
     userController(req, self.repository.user)
