@@ -1,5 +1,6 @@
 import std/json
 import std/os
+import std/tables
 import std/sequtils
 import std/strformat
 import std/strutils
@@ -14,32 +15,39 @@ type ReadModel* = concept x
   x.tableName() is string
   x.id is int64
 
+type Fields = ref object
+  keys: seq[string]
+  values: seq[string]
+
+
+func joinedKeys*(self: Fields): string = self.keys.join(",")
+func placeholders*(self: Fields): string = self.keys.mapIt("?").join(",")
 
 func dbConn*(filename: string): DbConn =
   open(filename, "", "", "")
 
 
-func getFields(t: ref object): tuple[keys: seq[string], values: seq[string]] =
+func getFields(t: ref object): Fields =
+  result = Fields()
   let node = %* t
   for (key, val) in node.pairs:
     result.keys.add(key)
     result.values.add($val)
-  
- 
-proc select*[T: ReadModel](self: DbConn, t: T, limit: uint64 = 100): seq[T] =
-  let query = &"""SELECT * FROM {t.tableName()} LIMIT 100"""
+
+
+iterator select*[T: ReadModel](self: DbConn, t: T, limit: uint64 = 100): JsonNode =
   let fields = getFields(t)
-  let rows = self.getAllRows(sql query)
-  for row in rows:
-    result.add to((%* row), typedesc t)
+  let query = &"""SELECT {fields.joinedKeys()} FROM {t.tableName()} LIMIT 100"""
+  for row in self.rows(sql query):
+    let table = zip(fields.keys, row).toTable()
+    yield (% table)
 
 
 proc save*(self: DbConn, t: WriteModel): int64 =
   let fields = getFields(t)
-  let keys = fields.keys.join(",")
-  let placeholders = fields.keys.mapIt("?").join(",")
-  let query = &"""INSERT INTO {t.tableName()} ({keys}) VALUES ({placeholders})"""
+  let query = &"""INSERT INTO {t.tableName()} ({fields.joinedKeys()}) VALUES ({fields.placeholders()})"""
   self.insertID(sql query, fields.values)
+
 
 when not defined(release):
   import std/os

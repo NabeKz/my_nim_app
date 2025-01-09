@@ -38,21 +38,34 @@ macro generateDeSerialize*(t: typedesc): untyped =
   for (key, val) in fields:     
     result[0][^1].add parseStmt &"""
     result.{key} = jsonNode["{key}"].getVal({val})
-    """
+    """ 
+
+macro generateDeSerialize2*(t: typedesc): untyped =
+  let impl = getImpl(t)
+  let recList = findChildRec(impl, nnkRecList)
+  debugEcho recList.repr
+  
+  quote do:
+    echo "ok"
 
 
 when isMainModule:
-  let body = """{"name": "a", "age": "1"}"""
-  let jsonNode = body.toJson()
-  type UserRecord = ref object of RootObj
-    name*: string
+  import src/shared/port/model
+  # let body = """{"name": "a", "age": "1"}"""
+  # let jsonNode = body.toJson()
+
+  type User* = ref object of RootObj
+    name*{.required.}: string
     age*: int
 
 
-  generateDeSerialize(UserRecord)
+  type UserRecord* = ref object of User
+    id*: int64
 
-  let f = deSerialize(jsonNode)
-  echo (%* f)
+  generateDeSerialize2(UserRecord)
+
+  # let f = deSerialize(jsonNode)
+  # echo (%* f)
 
 # StmtList
   # TypeSection

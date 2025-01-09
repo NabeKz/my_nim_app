@@ -1,11 +1,13 @@
 import src/shared/port/model
 
 type User* = ref object of RootObj
-  name{.required.}: string
-  age: int
+  name*{.required.}: string
+  age*: int
 
-type UserRecord* = ref object of User
-  id: int64
+type UserRecord* = ref object of RootObj
+  id*: int64
+  name*: string
+  age*: int
 
 
 type UserRepository* = tuple
@@ -18,9 +20,7 @@ generateValidation(User)
 func newUser*(name: string): User =
   User(name: name)
 
-func name*(self: User): string = self.name
-func age*(self: User): int = self.age
-func id*(self: User): int64 = self.id
 
 # HACK: refactor, should not has table name
-method tableName*(self: User): string{.base.} = "users"
+func tableName*(self: User): string = "users"
+func tableName*(self: UserRecord): string = "users"

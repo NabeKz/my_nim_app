@@ -37,7 +37,7 @@ func findChildRec(node: seq[NimNode], kind: NimNodeKind): NimNode =
     if child.isNil and n.len > 0:
       result = findChildRec(toSeq(n.children), kind)
       if result.isNil and i < node.len:
-        result = findChildRec(toSeq(node[i..^1]), kind)
+        result = findChildRec(toSeq(node[(i+1)..^1]), kind)
 
 
 

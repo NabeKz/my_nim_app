@@ -1,12 +1,16 @@
 import src/feature/user/model
 import src/shared/db/conn
+import src/shared/port/rdb
 
 type UserRdbRepository* = ref object
   db: DbConn
 
 
+generateDeSerialize(UserRecord)
+
 proc list*(self: UserRdbRepository): seq[UserRecord] =
-  self.db.select(UserRecord())
+  # discard self.db.select(UserRecord())
+  @[]
   
 
 proc create*(self: UserRdbRepository, model: User): int64 =
@@ -23,20 +27,14 @@ func newUserRepository*(db: DbConn): UserRepository =
   UserRdbRepository(db: db).toInterface()
 
 
-when not defined(release):
-  echo "dev"
-
 when isMainModule:
   import std/json
   import std/sequtils
   import std/tables
 
   dbOnMemory db:
-    let rows = db.getAllRows sql"select * from users;"
-    let fileds = ["id", "name", "age"]
-    for row in rows:
-      let node = % zip(fileds, row).toTable()
-      echo to(node, UserRecord).name
-      # let node = row
-      # let user = to(node, User)
-    # discard db.select(User())
+    for row in db.select(UserRecord()):
+      echo row
+      let user = deSerialize(row)
+      echo (%* user)
+      
