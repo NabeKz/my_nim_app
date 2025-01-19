@@ -8,6 +8,24 @@
         ユーザーが商品一覧を閲覧する。
         カテゴリやフィルターを使って絞り込む（例: 価格、人気順、カテゴリ）。
         キーワード検索を行う。
+```
+workflow show product list:
+
+actor: common user
+dependency:
+    - category
+input:
+    - product
+    - keyword
+event:
+    - product filter by category, price
+    - search product with keyword
+
+```
+
+
+
+
 
 2. 商品の詳細を確認する
 

@@ -2,7 +2,7 @@ import std/asynchttpserver
 import std/asyncdispatch
 
 import src/server/handler
-import src/feature/user/[port, usecase, model, repository]
+import src/feature/user/[port, usecase, model]
 
 template userController*(req: Request, repository: UserRepository): untyped =
   list "/users":

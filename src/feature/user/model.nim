@@ -20,6 +20,11 @@ generateValidation(User)
 func newUser*(name: string): User =
   User(name: name)
 
+func to*(record: UserRecord): User =
+  User(
+    name: record.name,
+    age: record.age,
+  )
 
 # HACK: refactor, should not has table name
 func tableName*(self: User): string = "users"

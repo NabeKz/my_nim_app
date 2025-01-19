@@ -25,7 +25,8 @@ proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
   echo "server is running at 5000"
   
-  proc router(req: Request) {.async.}  =    
+
+  proc router(req: Request) {.async.}  =
     userController(req, self.repository.user)
 
     await req.respond(Http404, $Http404)

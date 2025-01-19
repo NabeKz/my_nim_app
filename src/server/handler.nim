@@ -10,6 +10,8 @@ type ContentType = enum
   json = "application/json"
 
 
+type Controller* = proc(req: Request): Future[void]
+
 func newHttpHeaders(contentType: ContentType): HttpHeaders =
   newHttpHeaders([("ContentType", $contentTYpe)])
 
