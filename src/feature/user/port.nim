@@ -13,7 +13,7 @@ generateUnmarshal(UnValidateForm)
 
 template handleRequest*(body: string, model, op: untyped): untyped =
   let form = body.toJson().unmarshal()
-  let model = newUser(name = form.name)
+  let model = newUser(name = form.name, age = form.age)
   let errors = model.validate()
   if errors.len > 0:
     echo "error"
@@ -22,6 +22,9 @@ template handleRequest*(body: string, model, op: untyped): untyped =
 
 
 when isMainModule:
-  let body = """{"name": "a"}"""
+  import std/unittest
+
+  let body = """{"name": "a", "age": 20}"""
   handleRequest body, user:
-    echo user.name
+    check user.name == "a"
+    check user.age == 20

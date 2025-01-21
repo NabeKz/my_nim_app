@@ -25,6 +25,15 @@ type Fields = ref object
 func joinedKeys*(self: Fields): string = self.keys.join(",")
 func placeholders*(self: Fields): string = self.keys.mapIt("?").join(",")
 
+func getVal(jsonNode: JsonNode): string =
+  case jsonNode.kind
+  of JString:
+    jsonNode.getStr()
+  of JInt:
+    $jsonNode.getInt()
+  else:
+    raise newException(ValueError, "not supported type")
+
 func dbConn*(filename: string): DbConn =
   open(filename, "", "", "")
 
@@ -34,7 +43,7 @@ func getFields(t: ref object): Fields =
   let node = %* t
   for (key, val) in node.pairs:
     result.keys.add(key)
-    result.values.add($val)
+    result.values.add(val.getVal())
 
 
 iterator select*(self: DbConn, t: ReadModel, limit: uint64 = 100): JsonNode =
@@ -51,6 +60,7 @@ iterator select*(self: DbConn, t: ReadModel, limit: uint64 = 100): JsonNode =
 proc save*(self: DbConn, t: WriteModel): int64 =
   let fields = getFields(t)
   let query = &"""INSERT INTO {t.tableName()} ({fields.joinedKeys()}) VALUES ({fields.placeholders()})"""
+  debugEcho "debug: sql is ", query, fields.values
   self.insertID(sql query, fields.values)
 
 
@@ -88,6 +98,16 @@ when isMainModule:
   import std/sequtils
   import src/feature/user/model
 
+  when defined(migrate):
+    let db = dbConn(getCurrentDir() & "/db.sqlite3")
+    execDDL(db)
+    return
+  
   dbOnMemory db:
+    for jsonNode in db.select(UserRecord()):
+      echo jsonNode
+
+    discard db.save(User(name: "hoge", age: 20))
+
     for jsonNode in db.select(UserRecord()):
       echo jsonNode

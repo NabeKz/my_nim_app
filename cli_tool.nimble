@@ -27,4 +27,7 @@ task format, "format":
 
 task db_init, "initialize database":
   rmFile "db.sqlite3"
-  exec """nim c -r src/shared/db/conn"""
+  exec """nim c -d:migrate -r src/shared/db/conn"""
+
+task db_show, "show database tables":
+  exec """sqlite3 db.sqlite3 .tables"""

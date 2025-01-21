@@ -12,3 +12,12 @@ proc create*(repository: UserRepository, user: User): tuple[id: int64, user: Use
   else:
     let id = repository.save(user)
     (id, user)
+
+
+when isMainModule:
+  let json = """{
+    "name": "John",
+    "age": 20
+  }"""
+
+  

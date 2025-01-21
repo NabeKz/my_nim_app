@@ -17,8 +17,8 @@ type UserRepository* = tuple
 
 generateValidation(User)
 
-func newUser*(name: string): User =
-  User(name: name)
+func newUser*(name: string, age: int): User =
+  User(name: name, age: age)
 
 func to*(record: UserRecord): User =
   User(
