@@ -11,7 +11,7 @@ template userController*(req: Request, repository: UserRepository): untyped =
 
   create "/users":
     handleRequest req.body, user:
-      # discard create(repository, user)
+      discard create(repository, user)
       await req.json(Http200, user)
 
   read "/users", id:

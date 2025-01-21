@@ -1,5 +1,6 @@
 import std/asynchttpserver
 import std/asyncdispatch
+import std/sequtils
 import std/json
 import std/macros
 import std/re
@@ -23,8 +24,12 @@ proc json*(req: Request, code: HttpCode, content: ref object): Future[void] =
   let c = % content
   req.json(code, $c)
 
+proc json*(req: Request, code: HttpCode, content: seq[JsonNode]): Future[void] =
+  req.json(code, % content)
+
 proc json*(req: Request, code: HttpCode, content: seq[ref object]): Future[void] =
-  req.json(code, "content")
+  let jsonNode = content.mapIt(%* it)
+  req.json(code, jsonNode)
 
 proc text*(req: Request, code: HttpCode, content: string): Future[void] =
   let headers = newHttpHeaders(ContentType.text)

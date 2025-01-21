@@ -9,8 +9,8 @@ type UserRdbRepository* = ref object
 generateDeSerialize(UserRecord)
 
 proc list*(self: UserRdbRepository): seq[UserRecord] =
-  # discard self.db.select(UserRecord())
-  @[]
+  for record in self.db.select(UserRecord()):
+    result.add deSerialize(record)
   
 
 proc create*(self: UserRdbRepository, model: User): int64 =
@@ -29,12 +29,9 @@ func newUserRepository*(db: DbConn): UserRepository =
 
 when isMainModule:
   import std/json
-  import std/sequtils
-  import std/tables
 
   dbOnMemory db:
-    for row in db.select(UserRecord()):
-      echo row
-      let user = deSerialize(row)
-      echo (%* user)
+    let repository = newUserRepository(db)
+    for r in repository.list():
+      debugEcho %r
       

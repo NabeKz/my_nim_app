@@ -31,6 +31,7 @@ macro generateDeSerialize*(t: typedesc): untyped =
   let recList = findChildRec(impl, nnkRecList)
   let fields = recList.mapIt((getNameField(it[0]).repr, it[1].repr))
   let jsonNode = ident("jsonNode")
+
   result = newStmtList()
   result.add quote do:
     proc deSerialize(`jsonNode`: JsonNode): `t` =

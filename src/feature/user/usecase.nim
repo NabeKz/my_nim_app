@@ -1,8 +1,8 @@
 import ./model
 
-proc list*(repository: UserRepository): seq[User] =
-  for record in repository.list():
-    result.add to(record)
+
+proc list*(repository: UserRepository): seq[UserRecord] =
+  repository.list()
 
 
 proc create*(repository: UserRepository, user: User): tuple[id: int64, user: User] =

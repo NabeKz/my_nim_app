@@ -6,6 +6,8 @@ import std/strformat
 import std/strutils
 import db_connector/db_sqlite
 
+export tables
+
 type DbConn* = db_sqlite.DbConn
 
 type WriteModel* = concept x
@@ -35,11 +37,14 @@ func getFields(t: ref object): Fields =
     result.values.add($val)
 
 
-iterator select*[T: ReadModel](self: DbConn, t: T, limit: uint64 = 100): JsonNode =
+iterator select*(self: DbConn, t: ReadModel, limit: uint64 = 100): JsonNode =
   let fields = getFields(t)
   let query = &"""SELECT {fields.joinedKeys()} FROM {t.tableName()} LIMIT 100"""
+  when not defined(release):
+    debugEcho "sql is: ", query
   for row in self.rows(sql query):
     let table = zip(fields.keys, row).toTable()
+    debugEcho "debug: ", $table
     yield (% table)
 
 
@@ -81,13 +86,8 @@ when isMainModule:
   import std/os
   import std/algorithm
   import std/sequtils
+  import src/feature/user/model
 
-  let db = dbConn(getCurrentDir() & "/db.sqlite3")
-  let ddls = toSeq(walkDirRec("src")).filterIt(it.endsWith(".sql")).sorted()
-  for ddl in ddls:
-    let query = readFile(ddl)
-    echo query
-    let success = db.tryExec(sql query)
-    if not success:
-      echo "exec sql failure " & ddl
-    
+  dbOnMemory db:
+    for jsonNode in db.select(UserRecord()):
+      echo jsonNode

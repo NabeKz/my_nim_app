@@ -1,5 +1,3 @@
-import std/macros
-import std/sequtils
 import std/strformat
 
 type ValidationMessage* = ref object
