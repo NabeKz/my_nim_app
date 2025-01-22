@@ -1,5 +1,5 @@
 {
-  "deps": "",
+  "deps": "_deps",
   "overrides": "",
   "plugins": "",
   "resolver": "SemVer",
@@ -16,13 +16,43 @@
             "commit": "",
             "req": 2,
             "v": 0
+          },
+          {
+            "version": "0.1.0",
+            "commit": "60e64483f6d1c62d0ea0df334d2a520dec9f2401",
+            "req": 2,
+            "v": 1
+          },
+          {
+            "version": "0.1.0",
+            "commit": "e7c8ea3505e88eca7212230bb471f81aa2f2ffda",
+            "req": 2,
+            "v": 2
+          },
+          {
+            "version": "0.1.0",
+            "commit": "1e2f763358059628669ecde67aeaf67ea041d331",
+            "req": 2,
+            "v": 3
+          },
+          {
+            "version": "0.1.0",
+            "commit": "a6e37fe87d9bf84d614b411119148da96b5718b9",
+            "req": 2,
+            "v": 4
+          },
+          {
+            "version": "0.1.0",
+            "commit": "cbd17268f254be489dbd1a135705cf06f208b692",
+            "req": 2,
+            "v": 5
           }
         ],
         "active": true,
         "isRoot": true,
         "isTopLevel": true,
         "status": 0,
-        "activeVersion": 0,
+        "activeVersion": 5,
         "ondisk": "/home/kazuya/cli_tool"
       },
       {
@@ -34,21 +64,15 @@
           {
             "version": "#head",
             "commit": "",
-            "req": 3,
-            "v": 1
-          },
-          {
-            "version": "0.1.0",
-            "commit": "c77cffdfed0b5a74dc10f599206c5a883778af0d",
-            "req": 3,
-            "v": 2
+            "req": 1,
+            "v": 6
           }
         ],
         "active": true,
         "isRoot": true,
         "isTopLevel": false,
         "status": 0,
-        "activeVersion": 1,
+        "activeVersion": 0,
         "ondisk": "/home/kazuya/cli_tool/db_connector"
       }
     ],
@@ -97,17 +121,7 @@
         "srcDir": "src",
         "version": "0.1.0",
         "nimVersion": "2.2.0",
-        "v": 3,
-        "status": 0,
-        "err": ""
-      },
-      {
-        "deps": [],
-        "hasInstallHooks": false,
-        "srcDir": "src",
-        "version": "0.1.0",
-        "nimVersion": "1.7.3",
-        "v": 4,
+        "v": 7,
         "status": 0,
         "err": ""
       }
