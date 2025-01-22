@@ -82,6 +82,16 @@ macro generateValidation*(t: typedesc): untyped =
           result.add `message`
 
 
+macro autoMigrate*(t: typedesc): untyped =
+  let impl = getImpl(t)
+  let recList = findChildRec(impl, nnkRecList)
+  let fields = recList.mapIt((getNameField(it[0]).repr, it[1].repr))
+  
+  quote do:
+    for f in `fields`:
+      echo f[0], " : " & f[1]
+
+
 
 when isMainModule:
   import std/unittest

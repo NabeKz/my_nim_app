@@ -82,6 +82,7 @@ when not defined(release):
         echo "exec sql failure " & ddl
 
   ## use only dev
+  ## filenames = db.sqlite3"
   template dbSetup*(filename: string, db, op: untyped): untyped =
     let db = dbConn(filename)
     execDDL(db)
