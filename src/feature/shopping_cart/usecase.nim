@@ -1,22 +1,25 @@
 import std/json
-import std/sugar
 import ./model
 
 
 type 
+  CartFetchUsecase* = concept x
+    x.invoke() is CartFetchOutputDto
   CartFetchUsecaseImpl*  = ref object
-  CartFetchOutputDto = JsonNode
-  CartFetchUsecase* = proc(): CartFetchOutputDto{.gcsafe.}
+    queryService: ShoppingCartQueryService
+  CartFetchOutputDto* = JsonNode
     
 
-proc invoke*(_: type CartFetchUsecaseImpl): CartFetchUsecase = 
-  proc(): CartFetchOutputDto =
-    let cart = newShoppingCart()
-    let items = @[
-      newProductItem(productId = 1, amount = 2),
-      newProductItem(productId = 2, amount = 3),
-    ]
-    %* cart.add(items)
+proc init*(_: type CartFetchUsecaseImpl, queryService: ShoppingCartQueryService): CartFetchUsecaseImpl = 
+  CartFetchUsecaseImpl(queryService: queryService)
+
+proc invoke*(_: CartFetchUsecaseImpl): CartFetchOutputDto = 
+  let cart = newShoppingCart()
+  let items = @[
+    newProductItem(productId = 1, amount = 2),
+    newProductItem(productId = 2, amount = 3),
+  ]
+  %* cart.add(items)
 
 
 type 

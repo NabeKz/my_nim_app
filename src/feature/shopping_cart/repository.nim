@@ -1,10 +1,10 @@
 import ./model
 
 
-type ShoppingCartQueryServiceSqlite = ref object
+type ShoppingCartQueryServiceSqlite* = ref object
 
 
-func fetch*(): ShoppingCart = 
+func fetch*(self: ShoppingCartQueryServiceSqlite): ShoppingCart = 
   let cart = newShoppingCart()
   let items = @[
     newProductItem(productId = 1, amount = 2),
@@ -13,8 +13,8 @@ func fetch*(): ShoppingCart =
   cart.add(items)
 
 
-# func toInterface(): ShoppingCartQueryService = 
-#   ShoppingCartQueryService(fetch: fetch)
-
-func newShoppingCartQueryService*(self: ShoppingCartQueryServiceSqlite): ShoppingCartQueryService = 
-  (fetch: self.fetch)
+func init*(_: type ShoppingCartQueryServiceSqlite): ShoppingCartQueryService = 
+  (
+    fetch: proc(): ShoppingCart = ShoppingCartQueryServiceSqlite().fetch()
+  )
+  

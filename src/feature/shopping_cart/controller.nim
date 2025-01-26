@@ -14,7 +14,7 @@ import ./usecase
 
 proc fetchShoppingCart*(req: Request, usecase: CartFetchUsecase): Future[void] =
   let form = req.body.toJson()
-  let data = usecase()
+  let data = usecase.invoke()
   req.json(Http200, data)
 
 template postShoppingCart*(req: Request, usecase: CartItemAddUsecase): untyped =
