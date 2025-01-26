@@ -14,12 +14,14 @@ type ShoppingCartPostController* = ref object
 proc init*(_: type ShoppingCartListController, usecase: CartFetchUsecase): proc(req: Request): Future[void]{.gcsafe.} =
   proc(req: Request): Future[void] =
     let form = req.body.toJson()
-    let data = usecase.invoke()
+    let data = usecase.invoke(form)
     req.json(Http200, data)
 
 
+
+generateUnmarshal(ProductItemInputDto)
 proc init*(_: type ShoppingCartPostController, usecase: CartFetchUsecase): proc(req: Request): Future[void]{.gcsafe.} =
   proc(req: Request): Future[void]{.gcsafe.} =
-    let form = req.body.toJson()
+    let form = req.body.toJson().unmarshal()
     let data = usecase.invoke(form)
     await req.json(Http200, data)

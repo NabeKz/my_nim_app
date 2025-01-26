@@ -19,8 +19,8 @@ generateValidation(Product)
 
 
 type ProductRepository* = tuple
-  list: proc(): seq[Product]
-  save: proc(): seq[Product]
+  list: proc(): seq[Product]{.gcsafe.}
+  save: proc(): void{.gcsafe.}
 
 
 func newProduct*(name: string, description: string, price: uint16, stock: uint16): Product =

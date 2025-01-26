@@ -1,8 +1,9 @@
 import std/asynchttpserver
 import std/asyncdispatch
+import std/sugar
 
 import src/feature/user/[controller, model, repository]
-import src/feature/shopping_cart/[controller, usecase, repository]
+import src/feature/shopping_cart/[controller, usecase, model, repository]
 import src/shared/db/conn
 import src/shared/utils
 
@@ -43,7 +44,7 @@ proc run(self: App) {.async.} =
           
 
       if req.url.path == "/cart" and req.reqMethod == HttpPost:
-        postShoppingCart req, CartItemAddUsecaseImpl()
+        await postShoppingCartController(req)
 
 
 

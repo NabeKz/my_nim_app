@@ -1,19 +1,22 @@
 import std/json
+
+import src/entities/product/model
 import ./model
 
 
 type 
   CartFetchUsecase* = concept x
-    x.invoke() is CartFetchOutputDto
+    x.invoke(CartFetchInputDto) is CartFetchOutputDto
   CartFetchUsecaseImpl*  = ref object
     queryService: ShoppingCartQueryService
+  CartFetchInputDto* = JsonNode
   CartFetchOutputDto* = JsonNode
-    
+  
 
 func init*(_: type CartFetchUsecaseImpl, queryService: ShoppingCartQueryService): CartFetchUsecaseImpl = 
   CartFetchUsecaseImpl(queryService: queryService)
 
-proc invoke*(self: CartFetchUsecaseImpl): CartFetchOutputDto = 
+proc invoke*(self: CartFetchUsecaseImpl, dto: CartFetchInputDto): CartFetchOutputDto = 
   let cart = newShoppingCart()
   let items = @[
     newProductItem(productId = 1, amount = 2),
@@ -24,15 +27,17 @@ proc invoke*(self: CartFetchUsecaseImpl): CartFetchOutputDto =
 
 type 
   CartItemAddUsecase* = concept x
-    x.invoke(JsonNode) is ProductItemOutputDto
+    x.invoke(JsonNode) is bool
   CartItemAddUsecaseImpl* = ref object
-  ProductItemOutputDto = JsonNode
+    repository: ProductRepository
+  ProductItemInputDto* = ref object
+    productId*: int
+    amount*: int
 
 
 func init*(_: type CartItemAddUsecaseImpl, queryService: ShoppingCartQueryService): CartFetchUsecaseImpl = 
   CartFetchUsecaseImpl(queryService: queryService)
 
-proc invoke*(self: CartItemAddUsecaseImpl, jsonNode: JsonNode): ProductItemOutputDto = 
-  let cart = newShoppingCart()
+proc invoke*(self: CartItemAddUsecaseImpl, dto: ProductItemInputDto): bool = 
   let item = newProductItem(productId = 1, amount = 2)
-  %* cart.add(item)
+  true
