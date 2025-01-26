@@ -53,7 +53,6 @@ iterator select*(self: DbConn, t: ReadModel, limit: uint64 = 100): JsonNode =
     debugEcho "sql is: ", query
   for row in self.rows(sql query):
     let table = zip(fields.keys, row).toTable()
-    debugEcho "debug: ", $table
     yield (% table)
 
 
