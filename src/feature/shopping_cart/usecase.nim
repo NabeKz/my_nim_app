@@ -10,10 +10,10 @@ type
   CartFetchOutputDto* = JsonNode
     
 
-proc init*(_: type CartFetchUsecaseImpl, queryService: ShoppingCartQueryService): CartFetchUsecaseImpl = 
+func init*(_: type CartFetchUsecaseImpl, queryService: ShoppingCartQueryService): CartFetchUsecaseImpl = 
   CartFetchUsecaseImpl(queryService: queryService)
 
-proc invoke*(_: CartFetchUsecaseImpl): CartFetchOutputDto = 
+proc invoke*(self: CartFetchUsecaseImpl): CartFetchOutputDto = 
   let cart = newShoppingCart()
   let items = @[
     newProductItem(productId = 1, amount = 2),
@@ -28,6 +28,9 @@ type
   CartItemAddUsecaseImpl* = ref object
   ProductItemOutputDto = JsonNode
 
+
+func init*(_: type CartItemAddUsecaseImpl, queryService: ShoppingCartQueryService): CartFetchUsecaseImpl = 
+  CartFetchUsecaseImpl(queryService: queryService)
 
 proc invoke*(self: CartItemAddUsecaseImpl, jsonNode: JsonNode): ProductItemOutputDto = 
   let cart = newShoppingCart()

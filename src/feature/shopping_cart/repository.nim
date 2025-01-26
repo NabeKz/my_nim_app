@@ -1,7 +1,9 @@
+import src/shared/db/conn
 import ./model
 
 
 type ShoppingCartQueryServiceSqlite* = ref object
+  db: DbConn
 
 
 func fetch*(self: ShoppingCartQueryServiceSqlite): ShoppingCart = 
@@ -13,8 +15,9 @@ func fetch*(self: ShoppingCartQueryServiceSqlite): ShoppingCart =
   cart.add(items)
 
 
-func init*(_: type ShoppingCartQueryServiceSqlite): ShoppingCartQueryService = 
+func init*(_: type ShoppingCartQueryServiceSqlite, db: DbConn): ShoppingCartQueryService = 
+  let repository = ShoppingCartQueryServiceSqlite(db: db)
   (
-    fetch: proc(): ShoppingCart = ShoppingCartQueryServiceSqlite().fetch()
+    fetch: proc(): ShoppingCart = repository.fetch()
   )
   

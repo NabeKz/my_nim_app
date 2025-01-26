@@ -7,17 +7,19 @@ import std/json
 import ./usecase
 
 
-# template fetchShoppingCart*(req: Request, usecase: CartFetchUsecase): untyped =
-#   let form = req.body.toJson()
-#   let data = usecase.invoke()
-#   await req.json(Http200, data)
+type ShoppingCartListController* = ref object
+type ShoppingCartPostController* = ref object
 
-proc fetchShoppingCart*(req: Request, usecase: CartFetchUsecase): Future[void] =
-  let form = req.body.toJson()
-  let data = usecase.invoke()
-  req.json(Http200, data)
 
-template postShoppingCart*(req: Request, usecase: CartItemAddUsecase): untyped =
-  let form = req.body.toJson()
-  let data = usecase.invoke(form)
-  await req.json(Http200, data)
+proc init*(_: type ShoppingCartListController, usecase: CartFetchUsecase): proc(req: Request): Future[void]{.gcsafe.} =
+  proc(req: Request): Future[void] =
+    let form = req.body.toJson()
+    let data = usecase.invoke()
+    req.json(Http200, data)
+
+
+proc init*(_: type ShoppingCartPostController, usecase: CartFetchUsecase): proc(req: Request): Future[void]{.gcsafe.} =
+  proc(req: Request): Future[void]{.gcsafe.} =
+    let form = req.body.toJson()
+    let data = usecase.invoke(form)
+    await req.json(Http200, data)

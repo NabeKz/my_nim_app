@@ -57,3 +57,10 @@ func findChildRec*(node: NimNode, kind: NimNodeKind): NimNode =
 func chain*(self: NimNode, nodes: varargs[NimNode]): NimNode =
   foldl(nodes, a.newDotExpr(b), self)
 
+
+template build*(db, controller, usecase, repository: untyped): untyped =
+  controller.init(
+    usecase.init(
+      repository.init(db)
+    )
+  )

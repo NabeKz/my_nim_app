@@ -24,20 +24,22 @@ func newApp(db: DbConn): App =
 
 
 proc run(self: App) {.async.} =
+  var db = dbConn("db.sqlite3")
+  defer: db.close()
+  
   self.server.listen(Port 5000)
   echo "server is running at 5000"
   
+  
+  let fetchShoppingCartController = build(db, ShoppingCartListController, CartFetchUsecaseImpl, ShoppingCartQueryServiceSqlite)
+  let postShoppingCartController = build(db, ShoppingCartListController, CartFetchUsecaseImpl, ShoppingCartQueryServiceSqlite)
 
   proc router(req: Request) {.async.}  =
     userController(req, self.repository.user)
 
     block cart: 
       if req.url.path == "/cart" and req.reqMethod == HttpGet:
-        await fetchShoppingCart(
-          req,
-          ShoppingCartQueryServiceSqlite.init() |> 
-          CartFetchUsecaseImpl.init()
-        )
+        await fetchShoppingCartController(req)
           
 
       if req.url.path == "/cart" and req.reqMethod == HttpPost:
