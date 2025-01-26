@@ -2,6 +2,7 @@ import std/asynchttpserver
 import std/asyncdispatch
 
 import src/feature/user/[controller, model, repository]
+import src/feature/shopping_cart/[http_port, usecase]
 import src/shared/db/conn
 
 type 
@@ -28,6 +29,14 @@ proc run(self: App) {.async.} =
 
   proc router(req: Request) {.async.}  =
     userController(req, self.repository.user)
+
+    if req.url.path == "/cart" and req.reqMethod == HttpGet:
+      await fetchShoppingCart(CartFetchUsecaseImpl(), req)
+
+    # if req.url.path == "/cart" and req.reqMethod == HttpPost:
+    #   await postShoppingCart(CartItemAddUsecaseImpl(), req)
+
+
 
     await req.respond(Http404, $Http404)
 
