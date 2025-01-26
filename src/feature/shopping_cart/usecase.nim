@@ -1,15 +1,16 @@
 import std/json
+import std/sugar
 import ./model
 
 
 type 
-  CartFetchUsecase* = concept x
-    x.invoke() is CartFetchOutputDto
   CartFetchUsecaseImpl*  = ref object
   CartFetchOutputDto = JsonNode
+  CartFetchUsecase* = proc(): CartFetchOutputDto{.gcsafe.}
     
 
-proc invoke*(self: CartFetchUsecaseImpl): CartFetchOutputDto = 
+proc invoke*(_: type CartFetchUsecaseImpl): CartFetchUsecase = 
+  proc(): CartFetchOutputDto =
     let cart = newShoppingCart()
     let items = @[
       newProductItem(productId = 1, amount = 2),
@@ -18,25 +19,14 @@ proc invoke*(self: CartFetchUsecaseImpl): CartFetchOutputDto =
     %* cart.add(items)
 
 
-type CartItemAddUsecase* = concept x
-  x.invoke(jsonNode: JsonNode) is ShoppingCart
-
-type CartItemAddUsecaseImpl* = ref object
-
-
-type ProductItemOutputDto = ref object
-  productId: int64
-  amount: uint16
+type 
+  CartItemAddUsecase* = concept x
+    x.invoke(JsonNode) is ProductItemOutputDto
+  CartItemAddUsecaseImpl* = ref object
+  ProductItemOutputDto = JsonNode
 
 
-type ShoppingCartOutputDto = ref object
-  items: seq[ProductItemOutputDto]
-
-
-
-
-func invoke*(self: CartItemAddUsecaseImpl, jsonNode: JsonNode): ShoppingCart = 
+proc invoke*(self: CartItemAddUsecaseImpl, jsonNode: JsonNode): ProductItemOutputDto = 
   let cart = newShoppingCart()
   let item = newProductItem(productId = 1, amount = 2)
-  cart.add(item)
-
+  %* cart.add(item)
