@@ -1,13 +1,13 @@
 import src/shared/port/model
 
-type Product* = ref object of RootObj
+type ProductWriteModel* = ref object of RootObj
   name*: string
   description*: string
   price*: uint16
   stock*: uint16
 
 
-type ProductRecord* = ref object of RootObj
+type ProductReadModel* = ref object of RootObj
   id*: int64
   name*: string
   description*: string
@@ -15,16 +15,16 @@ type ProductRecord* = ref object of RootObj
   stock*: uint16
 
 
-generateValidation(Product)
+generateValidation(ProductWriteModel)
 
 
 type ProductRepository* = tuple
-  list: proc(): seq[Product]{.gcsafe.}
+  list: proc(): seq[ProductReadModel]{.gcsafe.}
   save: proc(): void{.gcsafe.}
 
 
-func newProduct*(name: string, description: string, price: uint16, stock: uint16): Product =
-  Product(
+func newProduct*(name: string, description: string, price: uint16, stock: uint16): ProductWriteModel =
+  ProductWriteModel(
     name: name,
     description: description,
     price: price,
