@@ -1,5 +1,5 @@
 import std/json
-
+import std/sugar
 import src/entities/product/model
 import ./model
 
@@ -35,8 +35,8 @@ type
     amount*: int
 
 
-func init*(_: type CartItemAddUsecaseImpl, queryService: ShoppingCartQueryService): CartFetchUsecaseImpl = 
-  CartFetchUsecaseImpl(queryService: queryService)
+func init*(_: type CartItemAddUsecaseImpl, queryService: ShoppingCartQueryService): CartItemAddUsecaseImpl = 
+  CartItemAddUsecaseImpl(queryService: queryService)
 
 proc invoke*(self: CartItemAddUsecaseImpl, dto: ProductItemInputDto): bool = 
   let item = newProductItem(productId = 1, amount = 2)

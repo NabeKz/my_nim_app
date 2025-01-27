@@ -1,13 +1,13 @@
 import src/shared/port/model
 
-type ProductWriteModel* = ref object of RootObj
+type ProductWriteModel* = ref object
   name*: string
   description*: string
   price*: uint16
   stock*: uint16
 
 
-type ProductReadModel* = ref object of RootObj
+type ProductReadModel* = ref object
   id*: int64
   name*: string
   description*: string
