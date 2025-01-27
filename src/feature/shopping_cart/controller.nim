@@ -11,11 +11,10 @@ type ShoppingCartListController* = ref object
 type ShoppingCartPostController* = ref object
 
 
-proc init*(_: type ShoppingCartListController, usecase: CartFetchUsecase): proc(req: Request): Future[void]{.gcsafe.} =
-  proc(req: Request): Future[void] =
-    let form = req.body.toJson()
-    let data = usecase.invoke(form)
-    req.json(Http200, data)
+template init*(_: type ShoppingCartListController, usecase: CartFetchUsecase): untyped =
+  let form = req.body.toJson()
+  let data = usecase.invoke(form)
+  await req.json(Http200, data)
 
 
 
