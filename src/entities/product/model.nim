@@ -18,9 +18,9 @@ type ProductReadModel* = ref object
 generateValidation(ProductWriteModel)
 
 
-type ProductRepository* = tuple
-  list: proc(): seq[ProductReadModel]{.gcsafe.}
-  save: proc(): void{.gcsafe.}
+type ProductRepository* = concept x
+  # x.list() is seq[ProductReadModel]
+  x.save()
 
 
 func newProduct*(name: string, description: string, price: uint16, stock: uint16): ProductWriteModel =

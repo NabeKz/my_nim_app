@@ -2,8 +2,9 @@ import std/asynchttpserver
 import std/asyncdispatch
 import std/sugar
 
+import src/server/handler
 import src/feature/user/[controller, model, repository]
-import src/feature/shopping_cart/[controller, usecase, model, repository]
+import src/feature/shopping_cart/route
 import src/shared/db/conn
 import src/shared/utils
 
@@ -31,20 +32,14 @@ proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
   echo "server is running at 5000"
   
-  
-  let fetchShoppingCartController = build(db, ShoppingCartListController, CartFetchUsecaseImpl, ShoppingCartQueryServiceSqlite)
-  let postShoppingCartController = build(db, ShoppingCartListController, CartFetchUsecaseImpl, ShoppingCartQueryServiceSqlite)
+  let fetchShoppingCartController = newFetchShoppingCartRoute(db)
+  let postShoppingCartController = newPostShoppingCartRoute(db)
 
   proc router(req: Request) {.async.}  =
-    userController(req, self.repository.user)
+    # userController(req, self.repository.user)
 
-    block cart: 
-      if req.url.path == "/cart" and req.reqMethod == HttpGet:
-        await fetchShoppingCartController(req)
-          
-
-      if req.url.path == "/cart" and req.reqMethod == HttpPost:
-        await postShoppingCartController(req)
+    list "/cart", fetchShoppingCartController(req)
+    create "/cart", postShoppingCartController(req)
 
 
 

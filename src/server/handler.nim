@@ -50,14 +50,14 @@ macro list*(p: string, body: untyped): untyped =
   let req = ident "req"
   result = quote do:
     if `req`.reqMethod == HttpGet and `req`.url.path == `p`:
-      `body`
+      await `body`
 
 
 macro create*(p: string, body: untyped): untyped =
   let req = ident "req"
   result = quote do:
     if `req`.reqMethod == HttpPost and `req`.url.path == `p`:
-      `body`
+      await `body`
 
 
 macro read*(p: string, arg, body: untyped): untyped =

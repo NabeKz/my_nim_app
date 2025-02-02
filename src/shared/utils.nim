@@ -59,8 +59,6 @@ func chain*(self: NimNode, nodes: varargs[NimNode]): NimNode =
 
 
 template build*(db, controller, usecase, repository: untyped): untyped =
-  controller.init(
-    usecase.init(
-      repository.init(db)
-    )
-  )
+  proc(req: Request): Future[void] =
+    let u = usecase.init repository.init(db)
+    controller.run(u, req)

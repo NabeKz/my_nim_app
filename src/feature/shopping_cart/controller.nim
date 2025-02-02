@@ -1,8 +1,9 @@
 import std/asynchttpserver
 import std/asyncdispatch
+import std/json
+
 import src/server/handler
 import src/shared/port/http
-import std/json
 
 import ./usecase
 
@@ -11,16 +12,15 @@ type ShoppingCartListController* = ref object
 type ShoppingCartPostController* = ref object
 
 
-template init*(_: type ShoppingCartListController, usecase: CartFetchUsecase): untyped =
+proc run*(_: type ShoppingCartListController, usecase: CartFetchUsecase, req: Request): Future[void] =
   let form = req.body.toJson()
   let data = usecase.invoke(form)
-  await req.json(Http200, data)
+  req.json(Http200, data)
 
 
 
 generateUnmarshal(ProductItemInputDto)
-proc init*(_: type ShoppingCartPostController, usecase: CartFetchUsecase): proc(req: Request): Future[void]{.gcsafe.} =
-  proc(req: Request): Future[void]{.gcsafe.} =
-    let form = req.body.toJson().unmarshal()
-    let data = usecase.invoke(form)
-    await req.json(Http200, data)
+proc run*(_: type ShoppingCartPostController, usecase: CartItemAddUsecaseImpl, req: Request): Future[void] =
+  let form = req.body.toJson().unmarshal()
+  let data = usecase(form)
+  req.json(Http200, "data")

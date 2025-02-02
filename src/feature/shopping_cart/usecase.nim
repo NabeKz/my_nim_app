@@ -28,16 +28,17 @@ proc invoke*(self: CartFetchUsecaseImpl, dto: CartFetchInputDto): CartFetchOutpu
 type 
   CartItemAddUsecase* = concept x
     x.invoke(JsonNode) is bool
-  CartItemAddUsecaseImpl* = ref object
-    repository: ProductRepository
+  CartItemAddUsecaseImpl* = proc(jsonNode: ProductItemInputDto): bool{.gcsafe.}
   ProductItemInputDto* = ref object
     productId*: int
     amount*: int
 
 
-func init*(_: type CartItemAddUsecaseImpl, queryService: ShoppingCartQueryService): CartItemAddUsecaseImpl = 
-  CartItemAddUsecaseImpl(queryService: queryService)
-
 proc invoke*(self: CartItemAddUsecaseImpl, dto: ProductItemInputDto): bool = 
   let item = newProductItem(productId = 1, amount = 2)
   true
+
+proc init*(_: type CartItemAddUsecaseImpl, repository: ProductRepository): CartItemAddUsecaseImpl = 
+  proc(dto: ProductItemInputDto): bool{.gcsafe.} = 
+    true
+

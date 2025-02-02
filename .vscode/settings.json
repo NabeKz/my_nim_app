@@ -1,3 +1,4 @@
 {
   "nim.formatOnSave": true,
+  "nim.buildOnSave": true,
 }
