@@ -1,9 +1,9 @@
 import std/asynchttpserver
 import std/asyncdispatch
 
-import src/server/handler
+import src/shared/handler
 import src/shared/db/conn
-import src/shared/utils
+
 import src/entities/product/[model, adaptor/rdb]
 import src/feature/shopping_cart/[controller, usecase, model, repository]
 

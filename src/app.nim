@@ -1,11 +1,10 @@
 import std/asynchttpserver
 import std/asyncdispatch
-import std/sugar
 
-import src/server/handler
 import src/feature/user/[controller, model, repository]
-import src/feature/shopping_cart/route
+import src/app/route
 import src/shared/db/conn
+import src/shared/[handler]
 import src/shared/utils
 
 type 

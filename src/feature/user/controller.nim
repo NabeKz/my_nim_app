@@ -1,10 +1,7 @@
-import std/asynchttpserver
-import std/asyncdispatch
-
-import src/server/handler
 import src/feature/user/[port, usecase, model]
+import src/shared/handler
 
-template userController*(req: Request, repository: UserRepository): untyped =
+template userController*(req, repository: untyped): untyped =
   list "/users":
     let users = list(repository)
     await req.json(Http200, users)

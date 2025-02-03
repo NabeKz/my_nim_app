@@ -2,7 +2,7 @@ import std/asynchttpserver
 import std/asyncdispatch
 import std/json
 
-import src/server/handler
+import src/shared/handler
 import src/shared/port/http
 
 import ./usecase
