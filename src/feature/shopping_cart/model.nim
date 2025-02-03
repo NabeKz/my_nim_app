@@ -11,8 +11,11 @@ type ShoppingCart* = ref object of RootObj
   productItems: seq[ProductItem]
 
 
-type ShoppingCartQueryService* = tuple
-  fetch: proc(): ShoppingCart{.gcsafe.}
+type 
+  ShoppingCartQueryService* = tuple
+    fetch: proc(): ShoppingCart{.gcsafe.}
+  ShoppingCartRepository* = concept x
+    x.save(ProductItem)
 
 
 func newProductItem*(productId: int64, amount: uint16): ProductItem =

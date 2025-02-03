@@ -1,6 +1,4 @@
 import std/json
-import std/sugar
-import src/entities/product/model
 import ./model
 
 
@@ -28,17 +26,19 @@ proc invoke*(self: CartFetchUsecaseImpl, dto: CartFetchInputDto): CartFetchOutpu
 type 
   CartItemAddUsecase* = concept x
     x.invoke(JsonNode) is bool
-  CartItemAddUsecaseImpl* = proc(jsonNode: ProductItemInputDto): bool{.gcsafe.}
+  CartItemAddUsecaseImpl* = proc(dto: ProductItemInputDto) {.gcsafe.}
   ProductItemInputDto* = ref object
     productId*: int
     amount*: int
 
 
-proc invoke*(self: CartItemAddUsecaseImpl, dto: ProductItemInputDto): bool = 
-  let item = newProductItem(productId = 1, amount = 2)
-  true
+func to(dto: ProductItemInputDto): ProductItem =
+  newProductItem(
+    productId = dto.productId.int64,
+    amount = dto.amount.uint16
+  )
 
-proc init*(_: type CartItemAddUsecaseImpl, repository: ProductRepository): CartItemAddUsecaseImpl = 
-  proc(dto: ProductItemInputDto): bool{.gcsafe.} = 
-    true
+proc init*(_: type CartItemAddUsecaseImpl, repository: ShoppingCartRepository): CartItemAddUsecaseImpl = 
+  proc(dto: ProductItemInputDto) {.gcsafe.} = 
+    repository.save dto.to()
 

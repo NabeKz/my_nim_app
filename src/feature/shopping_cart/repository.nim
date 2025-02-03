@@ -20,4 +20,18 @@ func init*(_: type ShoppingCartQueryServiceSqlite, db: DbConn): ShoppingCartQuer
   (
     fetch: proc(): ShoppingCart = repository.fetch()
   )
-  
+
+
+type 
+  ShoppingCartRepositoryOnMemory* = ref object
+    cart: seq[ProductItem]
+
+func init*(_: type ShoppingCartRepositoryOnMemory): ShoppingCartRepositoryOnMemory =
+  ShoppingCartRepositoryOnMemory(
+    cart: newSeq[ProductItem]()
+  )
+
+
+
+proc save*(self: ShoppingCartRepositoryOnMemory, item: ProductItem) =
+  self.cart.add(item)
