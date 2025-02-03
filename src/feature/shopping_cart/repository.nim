@@ -1,3 +1,4 @@
+import std/sugar
 import src/shared/db/conn
 import ./model
 
@@ -35,3 +36,7 @@ func init*(_: type ShoppingCartRepositoryOnMemory): ShoppingCartRepositoryOnMemo
 
 proc save*(self: ShoppingCartRepositoryOnMemory, item: ProductItem) =
   self.cart.add(item)
+
+
+proc save*(self: ShoppingCartRepositoryOnMemory): ShoppingCartAddEvent =
+  (item: ProductItem) => self.cart.add(item)

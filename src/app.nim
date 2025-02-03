@@ -2,7 +2,7 @@ import std/asynchttpserver
 import std/asyncdispatch
 
 import src/feature/user/[controller, model, repository]
-import src/app/route
+import src/feature/shopping_cart/route
 import src/shared/db/conn
 import src/shared/[handler]
 import src/shared/utils

@@ -18,5 +18,5 @@ func newFetchShoppingCartRoute*(db: DBConn): auto =
 func newPostShoppingCartRoute*(db: DBConn): auto =
   proc (req: Request): auto =
     let r = ShoppingCartRepositoryOnMemory.init()
-    let u = CartItemAddUsecaseImpl.init(r)
+    let u = CartItemAddUsecaseImpl.init(r.save)
     ShoppingCartPostController.run(u, req)

@@ -1,4 +1,7 @@
 import std/json
+
+
+import src/shared/utils
 import ./model
 
 
@@ -38,7 +41,7 @@ func to(dto: ProductItemInputDto): ProductItem =
     amount = dto.amount.uint16
   )
 
-proc init*(_: type CartItemAddUsecaseImpl, repository: ShoppingCartRepository): CartItemAddUsecaseImpl = 
+proc init*(_: type CartItemAddUsecaseImpl, event: ShoppingCartAddEvent): CartItemAddUsecaseImpl = 
   proc(dto: ProductItemInputDto) {.gcsafe.} = 
-    repository.save dto.to()
+    event dto.to() 
 
