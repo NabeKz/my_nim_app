@@ -8,19 +8,12 @@ import src/shared/[handler]
 import src/shared/utils
 
 type 
-  Repository = object
-    user: UserRepository
-
   App = ref object
     server: AsyncHttpServer
-    repository: Repository
 
 func newApp(db: DbConn): App =
   App(
-    server: newAsyncHttpServer(),
-    repository: Repository(
-      user: newUserRepository(db)
-    )
+    server: newAsyncHttpServer()
   )
 
 

@@ -56,6 +56,15 @@ iterator select*(self: DbConn, t: ReadModel, limit: uint64 = 100): JsonNode =
     yield (% table)
 
 
+proc take*(self: DbConn, t: ReadModel): JsonNode =
+  let fields = getFields(t)
+  let query = &"""SELECT {fields.joinedKeys()} FROM {t.tableName()} LIMIT 1"""
+  when not defined(release):
+    debugEcho "sql is: ", query
+  let rows = self.rows(sql query)
+  % rows[0]
+
+
 proc save*(self: DbConn, t: WriteModel): int64 =
   let fields = getFields(t)
   let query = &"""INSERT INTO {t.tableName()} ({fields.joinedKeys()}) VALUES ({fields.placeholders()})"""
