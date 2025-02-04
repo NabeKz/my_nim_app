@@ -9,12 +9,14 @@ import src/feature/shopping_cart/[controller, usecase, model, repository]
 
 
 func newFetchShoppingCartRoute*(): auto =
+  let r = ShoppingCartRepositoryOnMemory.init()
+  let u = CartFetchUsecase.init(r.fetch)
   proc (req: Request): auto =
-    req.respond(Http200, "ok")
+    req.json(Http200, "ok")
 
 
 func newPostShoppingCartRoute*(db: DBConn): auto =
+  let r = ShoppingCartRepositoryOnMemory.init()
+  let u = CartItemAddUsecase.init(r.save)
   proc (req: Request): auto =
-    let r = ShoppingCartRepositoryOnMemory.init()
-    let u = CartItemAddUsecaseImpl.init(r.save)
     ShoppingCartPostController.run(u, req)

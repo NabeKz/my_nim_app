@@ -15,19 +15,9 @@ type
 func init*(_: type CartFetchUsecase, event: ShoppingCartFetchEvent): CartFetchUsecase = 
   (dto: CartFetchInputDto) => dto
 
-# proc invoke*(self: CartFetchUsecaseImpl, dto: CartFetchInputDto): CartFetchOutputDto = 
-#   let cart = newShoppingCart()
-#   let items = @[
-#     newProductItem(productId = 1, amount = 2),
-#     newProductItem(productId = 2, amount = 3),
-#   ]
-#   %* cart.add(items)
-
 
 type 
-  CartItemAddUsecase* = concept x
-    x.invoke(JsonNode) is bool
-  CartItemAddUsecaseImpl* = proc(dto: ProductItemInputDto) {.gcsafe.}
+  CartItemAddUsecase* = proc(dto: ProductItemInputDto) {.gcsafe.}
   ProductItemInputDto* = ref object
     productId*: int
     amount*: int
@@ -39,7 +29,7 @@ func to(dto: ProductItemInputDto): ProductItem =
     amount = dto.amount.uint16
   )
 
-proc init*(_: type CartItemAddUsecaseImpl, event: ShoppingCartAddEvent): CartItemAddUsecaseImpl = 
+proc init*(_: type CartItemAddUsecase, event: ShoppingCartAddEvent): CartItemAddUsecase = 
   proc(dto: ProductItemInputDto) {.gcsafe.} = 
     event dto.to() 
 

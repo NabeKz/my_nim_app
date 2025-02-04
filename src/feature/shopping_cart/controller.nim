@@ -20,7 +20,7 @@ proc run*(_: type ShoppingCartListController, usecase: CartFetchUsecase, req: Re
 
 
 generateUnmarshal(ProductItemInputDto)
-proc run*(_: type ShoppingCartPostController, usecase: CartItemAddUsecaseImpl, req: Request): Future[void] =
+proc run*(_: type ShoppingCartPostController, usecase: CartItemAddUsecase, req: Request): Future[void] =
   let form = req.body.toJson().unmarshal()
   usecase(form)
   req.json(Http200, "ok")

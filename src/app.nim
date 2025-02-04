@@ -16,7 +16,6 @@ func newApp(db: DbConn): App =
     server: newAsyncHttpServer()
   )
 
-
 proc run(self: App) {.async.} =
   var db = dbConn("db.sqlite3")
   defer: db.close()
