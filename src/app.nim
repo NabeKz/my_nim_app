@@ -24,7 +24,7 @@ proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
   echo "server is running at 5000"
   
-  let fetchShoppingCartController = newFetchShoppingCartRoute(db)
+  let fetchShoppingCartController = newFetchShoppingCartRoute()
   let postShoppingCartController = newPostShoppingCartRoute(db)
 
   proc router(req: Request) {.async.}  =

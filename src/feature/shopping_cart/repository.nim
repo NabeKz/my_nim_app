@@ -16,16 +16,18 @@ func init*(_: type ShoppingCartQueryServiceSqlite, db: DbConn): ShoppingCartQuer
   ShoppingCartQueryServiceSqlite(db: db)
 
 
-proc fetch*(self: ShoppingCartQueryServiceSqlite, model: ShoppingCart): ShoppingCart = 
-  let jsonNode = self.db.take(ShoppingCart())
-  to(jsonNode, ShoppingCart)
+# proc fetch*(self: ShoppingCartQueryServiceSqlite, model: ShoppingCart): ShoppingCart = 
+#   # let jsonNode = self.db.take(ShoppingCart())
+#   # to(jsonNode, ShoppingCart)
+#   ShoppingCart()
 
 
-proc fetch*(self: ShoppingCartQueryServiceSqlite): ShoppingFetchEvent = 
-  (model: ShoppingCart) => self.fetch(model)
+# proc fetch*(self: ShoppingCartQueryServiceSqlite): ShoppingFetchEvent = 
+#   (model: ShoppingCart) => self.fetch(model)
   
 
-
+proc fetch*(self: ShoppingCartRepositoryOnMemory): ShoppingCartRepositoryOnMemory =
+  (model: ShoppingCart) => self.cart
 
 
 func init*(_: type ShoppingCartRepositoryOnMemory): ShoppingCartRepositoryOnMemory =

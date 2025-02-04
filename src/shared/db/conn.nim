@@ -61,7 +61,7 @@ proc take*(self: DbConn, t: ReadModel): JsonNode =
   let query = &"""SELECT {fields.joinedKeys()} FROM {t.tableName()} LIMIT 1"""
   when not defined(release):
     debugEcho "sql is: ", query
-  let rows = self.rows(sql query)
+  let rows = self.getRow(sql query)
   % rows[0]
 
 

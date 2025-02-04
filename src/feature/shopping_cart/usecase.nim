@@ -13,7 +13,7 @@ type
   
 
 func init*(_: type CartFetchUsecase, event: ShoppingCartFetchEvent): CartFetchUsecase = 
-  (dto: CartFetchInputDto) => (event())
+  (dto: CartFetchInputDto) => dto
 
 # proc invoke*(self: CartFetchUsecaseImpl, dto: CartFetchInputDto): CartFetchOutputDto = 
 #   let cart = newShoppingCart()
