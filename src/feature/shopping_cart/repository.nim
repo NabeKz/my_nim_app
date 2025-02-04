@@ -26,8 +26,8 @@ func init*(_: type ShoppingCartQueryServiceSqlite, db: DbConn): ShoppingCartQuer
 #   (model: ShoppingCart) => self.fetch(model)
   
 
-proc fetch*(self: ShoppingCartRepositoryOnMemory): ShoppingCartRepositoryOnMemory =
-  (model: ShoppingCart) => self.cart
+proc fetch*(self: ShoppingCartRepositoryOnMemory): ShoppingCartFetchEvent =
+  () => ShoppingCart()
 
 
 func init*(_: type ShoppingCartRepositoryOnMemory): ShoppingCartRepositoryOnMemory =
