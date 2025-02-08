@@ -9,7 +9,6 @@ type
   CartFetchInputDto* = JsonNode
   CartFetchOutputDto* = JsonNode
   CartFetchUsecase* = proc(dto: CartFetchInputDto): CartFetchOutputDto {.gcsafe.}
-  # CartFetchUsecase* = (dto: CartFetchInputDto) -> CartFetchOutputDto {.gcsafe}
   
 
 func init*(_: type CartFetchUsecase, event: ShoppingCartFetchEvent): CartFetchUsecase = 

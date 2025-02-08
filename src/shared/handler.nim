@@ -6,6 +6,8 @@ import std/macros
 import std/re
 import std/options
 
+export asynchttpserver
+
 type ContentType = enum
   text = "text/plane; charset=utf-8"
   json = "application/json"

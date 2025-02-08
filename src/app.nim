@@ -1,7 +1,9 @@
 import std/asynchttpserver
 import std/asyncdispatch
+import std/sugar
 
 import src/feature/user/[controller, model, repository]
+import src/entities/product/[controller, usecase, model, repository]
 import src/feature/shopping_cart/route
 import src/shared/db/conn
 import src/shared/[handler]
@@ -14,7 +16,7 @@ type
 func newApp(db: DbConn): App =
   App(
     server: newAsyncHttpServer()
-  )
+  )  
 
 proc run(self: App) {.async.} =
   var db = dbConn("db.sqlite3")
@@ -23,12 +25,18 @@ proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
   echo "server is running at 5000"
   
+  let productRepository = newProductRepositoryOnMemory()
+  let productListController = newProductListController () => productRepository.list()
+  
+  let productPostController = newProductCreateController (model: ProductWriteModel) => productRepository.save(model)
   let fetchShoppingCartController = newFetchShoppingCartRoute()
   let postShoppingCartController = newPostShoppingCartRoute(db)
 
   proc router(req: Request) {.async.}  =
     # userController(req, self.repository.user)
 
+    list "/products", productListController(req)
+    create "/products", productPostController(req)
     list "/cart", fetchShoppingCartController(req)
     create "/cart", postShoppingCartController(req)
 

@@ -37,6 +37,7 @@ func getNameField(node: NimNode): NimNode =
 
 func getVal*(j: JsonNode, _: type string): string = j.getStr()
 func getVal*(j: JsonNode, _: type int): int = j.getInt()
+func getVal*(j: JsonNode, _: type uint16): uint16 = j.getInt().uint16
 
 macro generateUnmarshal*(t: typedesc): untyped =
   let impl = getImpl(t)
