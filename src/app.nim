@@ -4,6 +4,7 @@ import std/sugar
 
 import src/feature/user/[controller, model, repository]
 import src/entities/product/[controller, usecase, model, repository]
+import src/entities/product/adaptor/controller/create
 import src/feature/shopping_cart/route
 import src/shared/db/conn
 import src/shared/[handler]
@@ -28,7 +29,7 @@ proc run(self: App) {.async.} =
   let productRepository = newProductRepositoryOnMemory().toInterface()
   let productListController = newProductListController newProductFetchUsecase productRepository
   
-  let productPostController = newProductCreateController newProductCreateUsecase productRepository
+  let productPostController = newProductPostControllerEvent(newProductCreateUsecase productRepository)
   let fetchShoppingCartController = newFetchShoppingCartRoute()
   let postShoppingCartController = newPostShoppingCartRoute(db)
 
@@ -38,7 +39,8 @@ proc run(self: App) {.async.} =
     list "/products", productListController(req)
     
     if req.url.path == "/products" and req.reqMethod == HttpPost:
-      let (code, content) = productPostController.build(req.body)
+      # let (code, content) = productPostController.build(req.body)
+      let (code, content) = productPostController(req.body)
       await req.json(code, content)
 
     list "/cart", fetchShoppingCartController(req)
