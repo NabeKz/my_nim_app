@@ -15,6 +15,7 @@ requires "nim >= 2.2.0", "db_connector"
 
 import os
 import std/strutils
+
 task sweep, "cleanup binary":
   for src in walkDirRec("src"):
     let path = src.split(".")
@@ -31,3 +32,7 @@ task db_init, "initialize database":
 
 task db_show, "show database tables":
   exec """sqlite3 db.sqlite3 .tables"""
+
+task ut, "run unit test":
+  exec """testament p tests/**/*.nim"""
+

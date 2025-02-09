@@ -1,4 +1,3 @@
-import std/json
 import src/entities/product/model
 
 type
