@@ -30,6 +30,7 @@ proc build*(self: ProductPostController, body: string): (HttpCode, string) =
   let model = form.unmarshal()
   let errors = self.usecase.invoke(model)
   if errors.isSome():
-    (Http400, $errors.get())
+    let errorMsg = %* errors.get()
+    (Http400, $errorMsg)
   else:
     (Http201, "ok")

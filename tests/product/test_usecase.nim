@@ -1,5 +1,6 @@
 import std/unittest
 import std/options
+import std/json
 
 import src/entities/product/repository
 import src/entities/product/usecase
@@ -7,7 +8,7 @@ import src/entities/product/usecase
 let repo = newProductRepositoryOnMemory().toInterface()
 
 
-block add:
+block valid:
   let addUsecase = newProductCreateUsecase repo
   let value = ProductInputDto(
     name: "a",
