@@ -1,2 +1,2 @@
 [
-{"name":"tests/product/test_usecase.nim c","category":"product","target":"c","action":"run","result":"reJoined","expected":"","given":"","machine":"kazuya-pc","commit":"530fd974836","branch":"feature/unit-test"}]
+{"name":"tests/product/test_usecase.nim c","category":"product","target":"c","action":"run","result":"reJoined","expected":"","given":"","machine":"kazuya-pc","commit":"6cd5b655bcd","branch":"feature/unit-test"}]
