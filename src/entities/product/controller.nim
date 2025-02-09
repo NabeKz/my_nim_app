@@ -25,17 +25,3 @@ proc newProductCreateController*(usecase: ProductCreateUsecase): auto =
       req.json(Http400, $errors.get())
     else:
       req.json(Http201, "ok")
-
-
-func validate(model: ProductInputDto): seq[string] = 
-  @[]
-
-proc newProductCreateController*(event: ProductSaveEvent): auto =
-  proc(req: Request): auto =
-    let form = req.body.toJson()
-    let model = form.unmarshal()
-    if (model.validate().len > 0):
-      req.json(Http400, "errors")
-    else:
-      event(model)
-      req.json(Http201, "ok")

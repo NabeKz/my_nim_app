@@ -31,3 +31,4 @@ proc invoke*(self: ProductCreateUsecase, dto: ProductInputDto): Option[seq[strin
     result = some(errors)
   else:
     self.repository.save(dto)
+

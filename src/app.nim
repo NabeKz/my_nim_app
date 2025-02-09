@@ -25,10 +25,10 @@ proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
   echo "server is running at 5000"
   
-  let productRepository = newProductRepositoryOnMemory()
-  let productListController = newProductListController () => productRepository.list()
+  let productRepository = newProductRepositoryOnMemory().toInterface()
+  let productListController = newProductListController newProductFetchUsecase productRepository
   
-  let productPostController = newProductCreateController (model: ProductWriteModel) => productRepository.save(model)
+  let productPostController = newProductCreateController newProductCreateUsecase productRepository
   let fetchShoppingCartController = newFetchShoppingCartRoute()
   let postShoppingCartController = newPostShoppingCartRoute(db)
 
