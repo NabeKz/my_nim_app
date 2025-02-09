@@ -1,4 +1,6 @@
 import std/sugar
+import std/options
+
 import src/entities/product/usecase
 
 import src/shared/handler
@@ -18,13 +20,22 @@ generateUnmarshal(ProductInputDto)
 proc newProductCreateController*(usecase: ProductCreateUsecase): auto =
   proc(req: Request): auto =
     let form = req.body.toJson()
-    usecase.invoke(form.unmarshal())
-    req.json(Http201, "ok")
+    let errors = usecase.invoke(form.unmarshal())
+    if errors.isSome():
+      req.json(Http400, $errors.get())
+    else:
+      req.json(Http201, "ok")
 
+
+func validate(model: ProductInputDto): seq[string] = 
+  @[]
 
 proc newProductCreateController*(event: ProductSaveEvent): auto =
   proc(req: Request): auto =
     let form = req.body.toJson()
     let model = form.unmarshal()
-    event(model)
-    req.json(Http201, "ok")
+    if (model.validate().len > 0):
+      req.json(Http400, "errors")
+    else:
+      event(model)
+      req.json(Http201, "ok")

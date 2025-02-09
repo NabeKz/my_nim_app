@@ -1,18 +1,19 @@
 import src/shared/port/model
+import src/shared/port/validation_rules
 
 type ProductWriteModel* = ref object
-  name*: string
+  name*{.required max(50).}: string
   description*: string
-  price*: uint16
-  stock*: uint16
+  price*{.between(0, 9_999_999).}: uint32
+  stock*{.between(0, 9_999_999).}: uint32
 
 
 type ProductReadModel* = ref object
   id*: int64
   name*: string
   description*: string
-  price*: uint16
-  stock*: uint16
+  price*: uint32
+  stock*: uint32
 
 
 generateValidation(ProductWriteModel)
@@ -24,7 +25,7 @@ type
     save: proc(model: ProductWriteModel): void{.gcsafe.}
     
 
-func newProduct*(name: string, description: string, price: uint16, stock: uint16): ProductWriteModel =
+func newProduct*(name: string, description: string, price: uint32, stock: uint32): ProductWriteModel =
   ProductWriteModel(
     name: name,
     description: description,

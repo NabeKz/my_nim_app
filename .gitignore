@@ -12,3 +12,4 @@ packages
 nimcache
 tests/megatest.nim
 outputGotten.txt
+outputExpected.txt
