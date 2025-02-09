@@ -34,6 +34,10 @@ proc json*(req: Request, code: HttpCode, content: seq[ref object]): Future[void]
   let jsonNode = content.mapIt(%* it)
   req.json(code, jsonNode)
 
+proc json*(req: Request, response: tuple[code: HttpCode, content: string]): Future[void] =
+  let (code, content) = response
+  req.json(code, content)
+
 proc text*(req: Request, code: HttpCode, content: string): Future[void] =
   let headers = newHttpHeaders(ContentType.text)
 

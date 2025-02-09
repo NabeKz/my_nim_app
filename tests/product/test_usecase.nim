@@ -22,5 +22,3 @@ block add:
     raise newException(ValueError, $errors)
   
   check errors.isNone() == true
-  
-  

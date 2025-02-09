@@ -38,6 +38,7 @@ func getNameField(node: NimNode): NimNode =
 func getVal*(j: JsonNode, _: type string): string = j.getStr()
 func getVal*(j: JsonNode, _: type int): int = j.getInt()
 func getVal*(j: JsonNode, _: type uint16): uint16 = j.getInt().uint16
+func getVal*(j: JsonNode, _: type uint32): uint32 = j.getInt().uint32
 
 macro generateUnmarshal*(t: typedesc): untyped =
   let impl = getImpl(t)
@@ -48,7 +49,7 @@ macro generateUnmarshal*(t: typedesc): untyped =
   result.add quote do:
     proc unmarshal(`jsonNode`: JsonNode): `t` =
       result = `t`()
-  for (key, val) in fields:     
+  for (key, val) in fields:
     result[0][^1].add parseStmt &"""
     if jsonNode.hasKey("{key}"):
       result.{key} = jsonNode["{key}"].getVal({val})
@@ -66,7 +67,7 @@ macro match*[T](model: T): untyped =
 
 
 when isMainModule:
-  let body = """{"name": 1}"""
+  let body = """{"name": "1"}"""
   let jsonNode = body.toJson()
   type UnValidateForm = ref object
     name: string

@@ -36,7 +36,11 @@ proc run(self: App) {.async.} =
     # userController(req, self.repository.user)
 
     list "/products", productListController(req)
-    create "/products", productPostController(req)
+    
+    if req.url.path == "/products" and req.reqMethod == HttpPost:
+      let (code, content) = productPostController.build(req.body)
+      await req.json(code, content)
+
     list "/cart", fetchShoppingCartController(req)
     create "/cart", postShoppingCartController(req)
 
