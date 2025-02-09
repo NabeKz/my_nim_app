@@ -1,0 +1,2 @@
+[
+{"name":"tests/category/test0.nim c","category":"category","target":"c","action":"run","result":"reJoined","expected":"","given":"","machine":"kazuya-pc","commit":"4223aeaba34","branch":"feature/unit-test"}]

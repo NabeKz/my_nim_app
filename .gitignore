@@ -10,3 +10,5 @@ _deps
 packages
 
 nimcache
+tests/megatest.nim
+outputGotten.txt
