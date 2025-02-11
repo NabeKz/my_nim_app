@@ -1,11 +1,8 @@
 import std/sugar
-import std/options
-import src/entities/product/model
+import src/entities/product/domain/model
 
 type
-  ProductCreateUsecase* = ref object
-    repository: ProductRepository
-
+  ProductCreateUsecase* = (dto: ProductInputDto) -> seq[string]
   ProductInputDto* = ref object
     name*: string
     description*: string
@@ -13,20 +10,30 @@ type
     stock*: uint32
 
 
-func newProductCreateUsecase*(repository: ProductRepository): ProductCreateUsecase =
-  ProductCreateUsecase(repository: repository)
+func validate(self: ProductInputDto): seq[string] = 
+  if self.name == "":
+    result.add("name is required")
 
 
-proc invoke*(self: ProductCreateUsecase, dto: ProductInputDto): Option[seq[string]] = 
-  let model = ProductWriteModel(
-    name: dto.name,
-    description: dto.description,
-    price: dto.price,
-    stock: dto.stock,
+func to(self: ProductInputDto, _: type ProductWriteModel): ProductWriteModel =
+  ProductWriteModel(
+    name: self.name,
+    description: self.description,
+    price: self.price,
+    stock: self.stock,
   )
-  let errors = model.validate()
-  if errors.len > 0:
-    result = some(errors)
-  else:
-    self.repository.save(model)
 
+
+proc newProductCreateUsecase*(command: ProductCreateCommand): ProductCreateUsecase = 
+  (dto: ProductInputDto) => (
+    let errors = dto.validate()
+    if errors.len > 0:
+      return errors
+
+    try:
+      let model = to(dto, ProductWriteModel)
+      command(model)
+    except:
+      let msg = getCurrentExceptionMsg()
+      result.add(msg)
+  )

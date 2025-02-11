@@ -1,12 +1,13 @@
-import src/entities/product/domain/[model, repository]
+import std/sugar
+import src/entities/product/domain/model
 
 
 type
-  ProductRepositoryOnMemory* = ref object of ProductRepository
+  ProductRepositoryOnMemory* = ref object
     products: seq[ProductReadModel]
 
 
-func newProductRepositoryOnMemory(): ProductRepositoryOnMemory =
+func newProductRepositoryOnMemory*(): ProductRepositoryOnMemory =
   let product = @[
     ProductReadModel(
       id: 1,
@@ -26,11 +27,11 @@ func newProductRepositoryOnMemory(): ProductRepositoryOnMemory =
   ProductRepositoryOnMemory(products: product)
 
 
-method list*(self: ProductRepositoryOnMemory): seq[ProductReadModel] = 
+proc list(self: ProductRepositoryOnMemory): seq[ProductReadModel] = 
   self.products
 
 
-method save*(self: ProductRepositoryOnMemory, model: ProductWriteModel): void = 
+proc save(self: ProductRepositoryOnMemory, model: ProductWriteModel): void = 
   let id = self.products.len + 1
   let product = ProductReadModel(
     id: id,
@@ -42,5 +43,10 @@ method save*(self: ProductRepositoryOnMemory, model: ProductWriteModel): void =
   self.products.add(product)
 
 
-func newProductRepository*(): ProductRepository =
-  newProductRepositoryOnMemory()
+proc listCommand*(self: ProductRepositoryOnMemory): ProductListCommand =
+  let repository = newProductRepositoryOnMemory()
+  () => repository.list()
+
+proc saveCommand*(self: ProductRepositoryOnMemory): ProductCreateCommand =
+  let repository = newProductRepositoryOnMemory()
+  (model: ProductWriteModel) => repository.save(model)

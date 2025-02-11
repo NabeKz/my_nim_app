@@ -5,10 +5,10 @@ import std/sequtils
 macro `|>`*(lhs, rhs: untyped): untyped =
   case rhs.kind:
   of nnkIdent:
-    result = newCall(rhs, lhs)
+    result = newCall(lhs, rhs)
   else:
-    result = rhs
-    result.insert(1, lhs)
+    result = lhs
+    result.insert(1, rhs)
 
 type ResultKind = enum
   kOk, kErr

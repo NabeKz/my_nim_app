@@ -1,15 +1,10 @@
 import std/asynchttpserver
 import std/asyncdispatch
-import std/sugar
 
-import src/feature/user/[controller, model, repository]
-import src/entities/product/[controller, usecase, model, repository]
-import src/entities/product/adaptor/controller/create
 import src/feature/shopping_cart/route
 import src/shared/db/conn
 import src/shared/[handler]
-import src/shared/utils
-import ./model
+import src/dependency
 
 type 
   App = ref object
@@ -27,22 +22,16 @@ proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
   echo "server is running at 5000"
   
-  let productRepository = newProductRepositoryOnMemory().toInterface()
-  let productListController = newProductListController newProductFetchUsecase productRepository
-  
-  let productPostController = newProductPostControllerEvent(newProductCreateUsecase productRepository)
   let fetchShoppingCartController = newFetchShoppingCartRoute()
   let postShoppingCartController = newPostShoppingCartRoute(db)
-
-  let healthCheckController = controller(usecase())
+  let deps = newDependency()
 
   proc router(req: Request) {.async, closure, gcsafe.}  =
-    # userController(req, self.repository.user)
-    if req.url.path == "/health-check":
-      await healthCheckController(req)
 
-
-    list "/products", productListController(req)
+    if req.url.path == "/products" and req.reqMethod == HttpGet:
+      await deps.productListController(req)
+    if req.url.path == "/products" and req.reqMethod == HttpPost:
+      await deps.productPostController(req)
     
     # if req.url.path == "/products" and req.reqMethod == HttpPost:
       # let (code, content) = productPostController.build(req.body)
@@ -51,8 +40,6 @@ proc run(self: App) {.async.} =
 
     list "/cart", fetchShoppingCartController(req)
     create "/cart", postShoppingCartController(req)
-
-
 
     await req.respond(Http404, $Http404)
 

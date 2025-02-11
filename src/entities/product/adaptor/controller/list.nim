@@ -1,36 +1,19 @@
 import std/sugar
-import std/options
+import std/json
 
-import src/entities/product/[usecase, model]
-
+import src/entities/product/usecase/list
 import src/shared/handler
-import src/shared/port/http
-
-type ProductPostController* = ref object
-  usecase: ProductCreateUsecase
 
 
-proc newProductListController*(usecase: ProductFetchUsecase): auto =
-  let data = usecase.invoke()
-  (req: Request) => req.json(Http200, data)
+type 
+  ProductListController* = Handler
 
 
-proc newProductListController*(event: ProductFetchListEvent): auto =
-  let data = event()
-  (req: Request) => req.json(Http200, data)
-
-
-proc newProductCreateController*(usecase: ProductCreateUsecase): auto =
-  ProductPostController(usecase: usecase)
-      
-
-generateUnmarshal(ProductInputDto)
-proc build*(self: ProductPostController, body: string): (HttpCode, string) =
-  let form = body.toJson()
-  let model = form.unmarshal()
-  let errors = self.usecase.invoke(model)
-  if errors.isSome():
-    let errorMsg = %* errors.get()
-    (Http400, $errorMsg)
-  else:
-    (Http201, "ok")
+proc newProductListController*(usecase: ProductListUsecase): ProductListController =
+  let data = usecase()
+  let jsonNode = %* data
+  let res = $jsonNode
+  
+  ProductListController(
+    (req: Request) => req.json(Http200, res)
+  )
