@@ -1,6 +1,5 @@
 import std/asynchttpserver
 import std/asyncdispatch
-import std/sequtils
 import std/json
 import std/macros
 import std/re
@@ -19,24 +18,18 @@ type
 func newHttpHeaders(contentType: ContentType): HttpHeaders =
   newHttpHeaders([("ContentType", $contentTYpe)])
 
-proc json*(req: Request, code: HttpCode, content: string): Future[void] =
+proc json(req: Request, code: HttpCode, content: string): Future[void] =
   let headers = newHttpHeaders(ContentType.json)
   req.respond(code, content, headers)
 
-proc json*(req: Request, code: HttpCode, content: ref object): Future[void] =
-  let c = % content
+proc json*(req: Request, code: HttpCode): Future[void] =
+  let headers = newHttpHeaders(ContentType.json)
+  req.respond(code, $code, headers)
+
+proc json*(req: Request, code: HttpCode, content: ref object | seq[ref object]): Future[void] =
+  let c = %* content
   req.json(code, $c)
 
-proc json*(req: Request, code: HttpCode, content: seq[JsonNode]): Future[void] =
-  req.json(code, % content)
-
-proc json*(req: Request, code: HttpCode, content: seq[ref object]): Future[void] =
-  let jsonNode = content.mapIt(%* it)
-  req.json(code, jsonNode)
-
-proc json*(req: Request, response: tuple[code: HttpCode, content: string]): Future[void] =
-  let (code, content) = response
-  req.json(code, content)
 
 proc text*(req: Request, code: HttpCode, content: string): Future[void] =
   let headers = newHttpHeaders(ContentType.text)

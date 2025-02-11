@@ -8,6 +8,6 @@ type ProductPostController* = Handler
 proc newProductPostController*(usecase: ProductCreateUsecase): ProductPostController = 
   ProductPostController (
     (req: Request) => (
-      req.json(Http201, $Http201)
+      req.json(Http201)
     )
   )

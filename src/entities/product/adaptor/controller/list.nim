@@ -11,9 +11,7 @@ type
 
 proc newProductListController*(usecase: ProductListUsecase): ProductListController =
   let data = usecase()
-  let jsonNode = %* data
-  let res = $jsonNode
   
   ProductListController(
-    (req: Request) => req.json(Http200, res)
+    (req: Request) => req.json(Http200, data)
   )

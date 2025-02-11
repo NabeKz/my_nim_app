@@ -25,5 +25,5 @@ proc newShoppingCartPostController*(usecase: CartAddUsecase): ShoppingCartPostCo
   (req: Request) => (
     let form = req.body.toJson().unmarshal()
     # usecase(form)
-    req.json(Http200, "ok")
+    req.json(Http200)
   )
