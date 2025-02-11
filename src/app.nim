@@ -9,6 +9,7 @@ import src/feature/shopping_cart/route
 import src/shared/db/conn
 import src/shared/[handler]
 import src/shared/utils
+import ./model
 
 type 
   App = ref object
@@ -33,15 +34,20 @@ proc run(self: App) {.async.} =
   let fetchShoppingCartController = newFetchShoppingCartRoute()
   let postShoppingCartController = newPostShoppingCartRoute(db)
 
-  proc router(req: Request) {.async.}  =
+  let healthCheckController = controller(usecase())
+
+  proc router(req: Request) {.async, closure, gcsafe.}  =
     # userController(req, self.repository.user)
+    if req.url.path == "/health-check":
+      await healthCheckController(req)
+
 
     list "/products", productListController(req)
     
-    if req.url.path == "/products" and req.reqMethod == HttpPost:
+    # if req.url.path == "/products" and req.reqMethod == HttpPost:
       # let (code, content) = productPostController.build(req.body)
-      let (code, content) = productPostController(req.body)
-      await req.json(code, content)
+      # let (code, content) = productPostController(req)
+      # await req.json(code, content)
 
     list "/cart", fetchShoppingCartController(req)
     create "/cart", postShoppingCartController(req)

@@ -29,6 +29,3 @@ proc newProductPostControllerEvent*(usecase: ProductCreateUsecase, body: string)
   let model = form.unmarshal()
   let data = "ok"
   (Http201, data)
-
-proc newProductPostControllerEvent*(usecase: ProductCreateUsecase): Request -> (HttpCode, string) = 
-  (req: Request) => newProductPostControllerEvent(usecase, req.body)
