@@ -1,4 +1,4 @@
-import src/feature/user/model
+import src/features/user/model
 import src/shared/db/conn
 import src/shared/port/rdb
 

@@ -1,4 +1,4 @@
-import src/feature/user/[port, usecase, model]
+import src/features/user/[port, usecase, model]
 import src/shared/handler
 
 template userController*(req, repository: untyped): untyped =

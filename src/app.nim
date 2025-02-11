@@ -1,9 +1,8 @@
 import std/asynchttpserver
 import std/asyncdispatch
 
-import src/feature/shopping_cart/route
 import src/shared/db/conn
-import src/shared/[handler]
+import src/shared/handler
 import src/dependency
 
 type 
@@ -22,8 +21,6 @@ proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
   echo "server is running at 5000"
   
-  let fetchShoppingCartController = newFetchShoppingCartRoute()
-  let postShoppingCartController = newPostShoppingCartRoute(db)
   let deps = newDependency()
 
   proc router(req: Request) {.async, closure, gcsafe.}  =
@@ -38,8 +35,11 @@ proc run(self: App) {.async.} =
       # let (code, content) = productPostController(req)
       # await req.json(code, content)
 
-    list "/cart", fetchShoppingCartController(req)
-    create "/cart", postShoppingCartController(req)
+    if req.url.path == "/cart" and req.reqMethod == HttpGet:
+      await deps.shoppingCartGetController(req)
+    if req.url.path == "/cart" and req.reqMethod == HttpPost:
+      await deps.shoppingCartPostController(req)
+
 
     await req.respond(Http404, $Http404)
 

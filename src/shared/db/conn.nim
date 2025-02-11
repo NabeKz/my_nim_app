@@ -105,7 +105,7 @@ when isMainModule:
   import std/os
   import std/algorithm
   import std/sequtils
-  import src/feature/user/model
+  import src/features/user/model
 
   when defined(migrate):
     let db = dbConn(getCurrentDir() & "/db.sqlite3")

@@ -1,5 +1,5 @@
 import src/shared/port/http
-import src/feature/user/model
+import src/features/user/model
 
 type UnValidateForm = ref object
   name: string
