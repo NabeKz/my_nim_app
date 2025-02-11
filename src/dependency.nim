@@ -27,6 +27,7 @@ proc newDependency*(): Dependency =
       newProductPostController(),
     
     shoppingCartGetController:
+      shoppingCartRepository.fetchCommand().
       newCartFetchUsecase().
       newShoppingCartGetController(),
 

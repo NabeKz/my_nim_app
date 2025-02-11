@@ -91,11 +91,3 @@ macro delete*(p: string, arg, body: untyped): untyped =
     if `req`.reqMethod == HttpDelete and path.match(ptn):
       let `arg` = parsePathParam(`p`, path)
       `body`
-
-
-macro makeHandler*(name, body: untyped): untyped =
-  let req = ident("req")
-  quote do:
-    func `name`*(db: DBConn): proc (`req`: Request): Future[void]{.gcsafe.} =
-      proc (`req`: Request): Future[void]{.gcsafe.} =
-        `body`

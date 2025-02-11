@@ -13,7 +13,7 @@ type
   ProductItemInputDto* = ref object
     productId*: int
     amount*: int
-  CartAddUsecase* = ((ProductItemInputDto) {.gcsafe.} -> void)
+  CartAddUsecase* = ((ProductItemInputDto) -> void)
 
 
 func to(dto: ProductItemInputDto, _: type ProductItem): ProductItem =
@@ -23,7 +23,7 @@ func to(dto: ProductItemInputDto, _: type ProductItem): ProductItem =
   )
 
 
-proc newCartFetchUsecase*(): CartFetchUsecase =
+proc newCartFetchUsecase*(command: ShoppingCartFetchEvent): CartFetchUsecase =
   (dto: CartFetchInputDto) => %* {}
 
 

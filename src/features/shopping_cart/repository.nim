@@ -22,6 +22,10 @@ proc newShoppingCartRepositoryOnMemory*(): ShoppingCartRepositoryOnMemory =
 
 
 
+proc fetchCommand*(self: ShoppingCartRepositoryOnMemory): ShoppingCartFetchEvent =
+  () => self.cart
+  
+
 proc saveCommand*(self: ShoppingCartRepositoryOnMemory): ShoppingCartAddEvent =
   (item: ProductItem) => (
     self.cart = self.cart.add(item)
