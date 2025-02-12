@@ -30,6 +30,8 @@ proc run(self: App) {.async.} =
     
     read "/cart", deps.shoppingCartGetController(req)
     post "/cart", deps.shoppingCartPostController(req)
+    
+    list "/information", deps.informationListController(req)
 
 
     await req.respond(Http404, $Http404)
