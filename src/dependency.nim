@@ -3,6 +3,7 @@ import src/entities/product/adaptor/controller/[list, create]
 import src/entities/product/usecase/[list, create]
 
 import src/features/shopping_cart/[usecase, controller, repository]
+import src/features/information/[list, adaptor/repository/on_memory]
 
 type 
   Dependency* = ref object
@@ -10,10 +11,12 @@ type
     productPostController*: ProductPostController
     shoppingCartGetController*: ShoppingCartGetController
     shoppingCartPostController*: ShoppingCartPostController
+    informationListController*: InformationListController
   
 proc newDependency*(): Dependency =
   let productRepository = newProductRepositoryOnMemory()
   let shoppingCartRepository = newShoppingCartRepositoryOnMemory()
+  let informationRepository = newInformationRepositoryOnMemory()
 
   Dependency(
     productListController:
@@ -35,4 +38,9 @@ proc newDependency*(): Dependency =
       shoppingCartRepository.saveCommand().
       newCartAddUsecase().
       newShoppingCartPostController(),
+
+    informationListController:
+      informationRepository.listCommand().
+      newInformationFetchListUsecase().
+      newInformationListController(),
   )

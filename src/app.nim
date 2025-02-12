@@ -25,20 +25,11 @@ proc run(self: App) {.async.} =
 
   proc router(req: Request) {.async, closure, gcsafe.}  =
 
-    if req.url.path == "/products" and req.reqMethod == HttpGet:
-      await deps.productListController(req)
-    if req.url.path == "/products" and req.reqMethod == HttpPost:
-      await deps.productPostController(req)
+    list "/products", deps.productListController(req)
+    post "/products", deps.productPostController(req)
     
-    # if req.url.path == "/products" and req.reqMethod == HttpPost:
-      # let (code, content) = productPostController.build(req.body)
-      # let (code, content) = productPostController(req)
-      # await req.json(code, content)
-
-    if req.url.path == "/cart" and req.reqMethod == HttpGet:
-      await deps.shoppingCartGetController(req)
-    if req.url.path == "/cart" and req.reqMethod == HttpPost:
-      await deps.shoppingCartPostController(req)
+    read "/cart", deps.shoppingCartGetController(req)
+    post "/cart", deps.shoppingCartPostController(req)
 
 
     await req.respond(Http404, $Http404)
