@@ -30,3 +30,16 @@ data CartItem =
 
 data ShoppingCart = 
   products: product of list
+
+
+data ExaminationResults =
+  approve
+  reject
+
+workflow:
+  triggered by:
+    "Order form received"
+  input:
+    "Extension Order"
+  output:
+    "Examination Results"
