@@ -38,9 +38,9 @@ when isMainModule:
 
   let (status, content) = controller.handleRequest(
   """{ 
-    "loanBegin": ""
+    "loanBegin": "2021-02-31"
   }"""
   )
 
-  check status == Http409
+  check status == Http400
 

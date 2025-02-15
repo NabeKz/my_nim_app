@@ -34,7 +34,7 @@ proc parseDate(value: string): Option[DateTime] =
 proc invoke(dto: CurrentStateInputDto): ExtensionApplyResult = 
   let dt = parseDate(dto.loanBegin)
   if dt.isNone():
-    return ExtensionApplyResult.Approve
+    return ExtensionApplyResult.Invalid
   
   let currentState = CurrentState(loanBegin: dt.get())
   let duration = initDuration(weeks = 2)
