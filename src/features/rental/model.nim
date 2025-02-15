@@ -1,5 +1,6 @@
 import std/sugar
 import std/times
+import std/options
 
 type
   RentalApplicationEvent = ref object
@@ -7,30 +8,47 @@ type
   Input = string
   Output = string
   Workflow = (Input -> Output) -> void
-  ExtensionApplyResult{.pure.} = enum
+  ExtensionApplyResult*{.pure.} = enum
+    Invalid
     Approve
     Reject
 
-  CurrentState = ref object
+  CurrentState* = ref object
     loanBegin: DateTime
+
+  CurrentStateInputDto* = ref object
+    loanBegin*: string
+
   
-  ExtensionUsecase = (CurrentState) -> ExtensionApplyResult
+  ExtensionUsecase* = (CurrentStateInputDto) -> ExtensionApplyResult
 
 
-proc extension(a, b: DateTime): ExtensionApplyResult =
-  let limit = a + initDuration(weeks = 2)
-  if limit > b:
+proc parseDate(value: string): Option[DateTime] = 
+  try:
+    let dt = parse(value, "yyyy-MM-dd")
+    some(dt)
+  except TimeParseError:
+    none(DateTime)
+
+
+proc invoke(dto: CurrentStateInputDto): ExtensionApplyResult = 
+  let dt = parseDate(dto.loanBegin)
+  if dt.isNone():
+    return ExtensionApplyResult.Approve
+  
+  let currentState = CurrentState(loanBegin: dt.get())
+  let duration = initDuration(weeks = 2)
+  let loanLimit = currentState.loanBegin + duration
+  let limit = loanLimit + initDuration(weeks = 2)
+  if limit > times.now():
     ExtensionApplyResult.Approve
   else:
     ExtensionApplyResult.Reject
 
-proc newExtensionUsecase(): ExtensionUsecase = 
-  let duration = initDuration(weeks = 2)
+  
 
-  (currentState: CurrentState) => (
-    let loanLimit = currentState.loanBegin + duration
-    extension(loanLimit, times.now())
-  )
+proc newExtensionUsecase*(): ExtensionUsecase = 
+  (body: CurrentStateInputDto) => invoke(body)
 
 
 when isMainModule:
