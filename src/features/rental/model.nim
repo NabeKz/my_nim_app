@@ -3,11 +3,7 @@ import std/times
 import std/options
 
 type
-  RentalApplicationEvent = ref object
   
-  Input = string
-  Output = string
-  Workflow = (Input -> Output) -> void
   ExtensionApplyResult*{.pure.} = enum
     Invalid
     Approve
@@ -58,8 +54,9 @@ when isMainModule:
   let currentState = CurrentState(
     loanBegin: parse("2024-02-01", "yyyy-MM-dd")
   )
-  let loanBegin = parse("2024-02-01", "yyyy-MM-dd")
-  let loanLimit = parse("2024-02-01", "yyyy-MM-dd")
-  let extensionResult = extension(loanBegin, loanLimit)
+  let dto = CurrentStateInputDto(
+    loanBegin*: "2024-02-01"
+  )
+  let extensionResult = usecase.invoke(dto)
 
   check extensionResult == ExtensionApplyResult.Approve
