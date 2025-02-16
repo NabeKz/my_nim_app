@@ -26,13 +26,8 @@ proc parseDate(value: string): Option[DateTime] =
   except TimeParseError:
     none(DateTime)
 
-
-proc invoke(dto: CurrentStateInputDto): ExtensionApplyResult = 
-  let dt = parseDate(dto.loanBegin)
-  if dt.isNone():
-    return ExtensionApplyResult.Invalid
-  
-  let currentState = CurrentState(loanBegin: dt.get())
+proc callback(dt: DateTime): ExtensionApplyResult =
+  let currentState = CurrentState(loanBegin: dt)
   let duration = initDuration(weeks = 2)
   let loanLimit = currentState.loanBegin + duration
   let limit = loanLimit + initDuration(weeks = 2)
@@ -40,6 +35,14 @@ proc invoke(dto: CurrentStateInputDto): ExtensionApplyResult =
     ExtensionApplyResult.Approve
   else:
     ExtensionApplyResult.Reject
+
+
+proc invoke(dto: CurrentStateInputDto): ExtensionApplyResult = 
+  let dt = parseDate(dto.loanBegin)
+  if dt.isNone():
+    ExtensionApplyResult.Invalid
+  else:
+    dt.map(callback).get()
 
   
 
@@ -55,8 +58,8 @@ when isMainModule:
     loanBegin: parse("2024-02-01", "yyyy-MM-dd")
   )
   let dto = CurrentStateInputDto(
-    loanBegin*: "2024-02-01"
+    loanBegin: "2024-02-02"
   )
-  let extensionResult = usecase.invoke(dto)
+  let extensionResult = usecase(dto)
 
   check extensionResult == ExtensionApplyResult.Approve
