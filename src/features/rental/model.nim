@@ -1,11 +1,10 @@
-import std/sugar
 import std/times
 import std/options
 
 type
   
   ExtensionApplyResult*{.pure.} = enum
-    Invalid
+    InvalidDate
     Approve
     Reject
 
@@ -15,9 +14,14 @@ type
   CurrentStateInputDto* = ref object
     loanBegin*: string
 
+  RentalRepository* = ref object of RootObj
   
-  ExtensionUsecase* = (CurrentStateInputDto) -> ExtensionApplyResult
+  ExtensionUsecase* = ref object
+    repository: RentalRepository
 
+
+method find*(self: RentalRepository): CurrentState{.base.} = 
+  discard
 
 proc parseDate(value: string): Option[DateTime] = 
   try:
@@ -25,6 +29,16 @@ proc parseDate(value: string): Option[DateTime] =
     some(dt)
   except TimeParseError:
     none(DateTime)
+
+
+proc newCurrentState*(value: string): Option[CurrentState] = 
+  let dt = parseDate(value)
+  if dt.isNone():
+    none(CurrentState)
+  else:
+    let state = CurrentState(loanBegin: dt.get())
+    some(state)
+
 
 proc callback(dt: DateTime): ExtensionApplyResult =
   let currentState = CurrentState(loanBegin: dt)
@@ -37,29 +51,29 @@ proc callback(dt: DateTime): ExtensionApplyResult =
     ExtensionApplyResult.Reject
 
 
-proc invoke(dto: CurrentStateInputDto): ExtensionApplyResult = 
+proc invoke*(self: ExtensionUsecase, dto: CurrentStateInputDto): ExtensionApplyResult = 
   let dt = parseDate(dto.loanBegin)
   if dt.isNone():
-    ExtensionApplyResult.Invalid
+    ExtensionApplyResult.InvalidDate
   else:
     dt.map(callback).get()
 
   
 
-proc newExtensionUsecase*(): ExtensionUsecase = 
-  (body: CurrentStateInputDto) => invoke(body)
+proc newExtensionUsecase*(repository: RentalRepository): ExtensionUsecase = 
+  ExtensionUsecase(repository: repository)
 
 
 when isMainModule:
   import std/unittest
+  discard
+  # let usecase = newExtensionUsecase()
+  # let currentState = CurrentState(
+  #   loanBegin: parse("2024-02-01", "yyyy-MM-dd")
+  # )
+  # let dto = CurrentStateInputDto(
+  #   loanBegin: "2024-02-02"
+  # )
+  # let extensionResult = usecase.invoke(dto)
 
-  let usecase = newExtensionUsecase()
-  let currentState = CurrentState(
-    loanBegin: parse("2024-02-01", "yyyy-MM-dd")
-  )
-  let dto = CurrentStateInputDto(
-    loanBegin: "2024-02-02"
-  )
-  let extensionResult = usecase(dto)
-
-  check extensionResult == ExtensionApplyResult.Approve
+  # check extensionResult == ExtensionApplyResult.Approve

@@ -4,6 +4,8 @@ import src/entities/product/usecase/[list, create]
 
 import src/features/shopping_cart/[usecase, controller, repository]
 import src/features/information/[list, adaptor/repository/on_memory]
+import src/features/rental/model
+import src/features/rental/infrastructure/[http/rental_controller, repository/on_memory]
 
 type 
   Dependency* = ref object
@@ -12,11 +14,13 @@ type
     shoppingCartGetController*: ShoppingCartGetController
     shoppingCartPostController*: ShoppingCartPostController
     informationListController*: InformationListController
+    rentalController*: RentalController
   
 proc newDependency*(): Dependency =
   let productRepository = newProductRepositoryOnMemory()
   let shoppingCartRepository = newShoppingCartRepositoryOnMemory()
   let informationRepository = newInformationRepositoryOnMemory()
+  let rentalRepositoryOnMemory = newRentalRepositoryOnMemory()
 
   Dependency(
     productListController:
@@ -43,4 +47,9 @@ proc newDependency*(): Dependency =
       informationRepository.listCommand().
       newInformationFetchListUsecase().
       newInformationListController(),
+
+    rentalController:
+      newRentalRepositoryOnMemory().
+      newExtensionUsecase().
+      newRentalController(),
   )
