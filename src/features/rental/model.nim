@@ -2,7 +2,6 @@ import std/times
 import std/options
 
 type
-  
   ExtensionApplyResult*{.pure.} = enum
     InvalidDate
     Approve
@@ -66,7 +65,6 @@ proc newExtensionUsecase*(repository: RentalRepository): ExtensionUsecase =
 
 when isMainModule:
   import std/unittest
-  discard
   # let usecase = newExtensionUsecase()
   # let currentState = CurrentState(
   #   loanBegin: parse("2024-02-01", "yyyy-MM-dd")
