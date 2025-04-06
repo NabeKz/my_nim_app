@@ -1,3 +1,2 @@
 [
-{"name":"tests/product/test_controller.nim c","category":"product","target":"c","action":"run","result":"reJoined","expected":"","given":"","machine":"kazuya-pc","commit":"3ae7d9b8756","branch":"feature/unit-test"},
-{"name":"tests/product/test_usecase.nim c","category":"product","target":"c","action":"run","result":"reJoined","expected":"","given":"","machine":"kazuya-pc","commit":"3ae7d9b8756","branch":"feature/unit-test"}]
+{"name":"tests/product/test_controller.nim c","category":"product","target":"c","action":"run","result":"reSuccess","expected":"","given":"","machine":"kazuya-pc","commit":"e1912eca5c7","branch":"main"}]
