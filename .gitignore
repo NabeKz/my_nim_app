@@ -13,3 +13,5 @@ nimcache
 tests/megatest.nim
 outputGotten.txt
 outputExpected.txt
+nimble.develop
+nimble.paths
