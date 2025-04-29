@@ -32,7 +32,7 @@ proc json*(req: Request, code: HttpCode, content: ref object): Future[void] =
 
 proc json*(req: Request, code: HttpCode, content: seq[ref object]): Future[void] =
   let c = %* content
-  req.json(code, $c)
+  req.json(code, $c.pretty())
 
 
 proc text*(req: Request, code: HttpCode, content: string): Future[void] =
