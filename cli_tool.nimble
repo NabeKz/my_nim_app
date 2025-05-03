@@ -35,4 +35,3 @@ task db_show, "show database tables":
 
 task ut, "run unit test":
   exec """testament p tests/**/*.nim"""
-
