@@ -33,5 +33,8 @@ task db_init, "initialize database":
 task db_show, "show database tables":
   exec """sqlite3 db.sqlite3 .tables"""
 
+task db_schema, "parse db schema":
+  exec """nim c -r src/shared/db/schema.nim"""
+
 task ut, "run unit test":
   exec """testament p tests/**/*.nim"""
