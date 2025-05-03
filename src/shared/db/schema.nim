@@ -67,6 +67,7 @@ when isMainModule:
   let tables = fetchTables(filename)
 
   for table in tables:
-    echo table
     let columns = parseSchema(filename, table)
-    echo columns
+    let table = Table(name: table, columns: columns)
+    echo table.name
+    echo table.columns
