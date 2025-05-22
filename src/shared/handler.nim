@@ -6,6 +6,7 @@ import std/re
 import std/options
 
 export asynchttpserver
+export asyncdispatch
 
 type ContentType = enum
   text = "text/plane; charset=utf-8"

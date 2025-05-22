@@ -4,6 +4,7 @@ import std/asyncdispatch
 import src/shared/db/conn
 import src/shared/handler
 import src/dependency
+import src/app/router/api
 
 type 
   App = ref object
@@ -23,25 +24,9 @@ proc run(self: App) {.async.} =
   
   let deps = newDependency()
 
-  proc router(req: Request) {.async, closure, gcsafe.}  =
-
-    list "/products", deps.productListController(req)
-    post "/products", deps.productPostController(req)
-    
-    read "/cart", deps.shoppingCartGetController(req)
-    post "/cart", deps.shoppingCartPostController(req)
-
-
-    post "/payment", req.respond(Http200, "ok")
-    
-    list "/information", deps.informationListController(req)
-
-
-    await req.respond(Http404, $Http404)
-
   while true:
     if self.server.shouldAcceptRequest():
-      await self.server.acceptRequest(router)
+      await self.server.acceptRequest(api.router)
     else:
       await sleepAsync(500)
 

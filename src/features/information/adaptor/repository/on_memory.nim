@@ -13,8 +13,6 @@ type
     information: seq[InformationReadModel]
 
 
-
-
 proc newInformationRepositoryOnMemory*(): InformationRepositoryOnMemory =
   InformationRepositoryOnMemory(information: @[
     newInformationReadModel(id = 1, content = "aaa"),
