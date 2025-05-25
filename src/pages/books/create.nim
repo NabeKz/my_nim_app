@@ -11,8 +11,9 @@ func input(label: string): string =
   )
 
 
-func get*(): string = 
+func get*(message: seq[string]): string = 
   htmlgen.div(
+    $message,
     htmlgen.form(
       action = "/books/create",
       `method` = "POST",
@@ -21,14 +22,3 @@ func get*(): string =
       "<button> submit </button>"
     )
   )
-  
-func post*(params: string): string = 
-  htmlgen.div(
-    htmlgen.form(
-      action = "/books",
-      `method` = "POST",
-      input("title"),
-      "<button> submit </button>"
-    )
-  )
-  

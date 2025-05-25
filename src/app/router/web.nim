@@ -3,6 +3,7 @@ import std/htmlgen
 import std/sequtils
 
 import src/shared/handler
+import src/pages/shared
 import src/pages/home
 import src/pages/books
 
@@ -13,24 +14,45 @@ const headers = {
 proc resp(req: Request, status: HttpCode, content: string): Future[void] =
   req.respond(status, content, headers.newHttpHeaders())
 
-proc resp(req: Request, content: string, cookie: string): Future[void] =
-  let headers = headers.items.toSeq().concat(@[
-    ("Set-Cookie", "hoge=fuga;errors=piyo"),
-  ])
-
-  req.respond(Http200, content, headers.newHttpHeaders())
-
 proc resp(req: Request, content: string): Future[void] =
   resp(req, Http200, content)
 
 proc match(req: Request, path: string, reqMethod: HttpMethod): bool =
   req.url.path == path and req.reqMethod == reqMethod
   
+proc redirect(req: Request, path: string, headers: seq[tuple[key: string, value: string]]): Future[void] =
+  req.respond(Http303, "", {
+      "location": path
+    }
+    .items.toSeq()
+    .concat(headers)
+    .newHttpHeaders()
+  )
+
+proc seeOther(req: Request, headers: seq[tuple[key: string, value: string]]): Future[void] =
+  req.respond(Http303, "", {
+      "location": req.url.path,
+    }
+    .items.toSeq()
+    .concat(headers)
+    .newHttpHeaders()
+  )
+
 proc redirect(req: Request, path: string): Future[void] =
-  req.respond(Http303, "", {"location": path}.newHttpHeaders())
+  req.redirect(path, @[])
 
 proc redirect(req: Request): Future[void] =
-  req.redirect(req.url.path)
+  req.redirect(req.url.path, @[])
+
+proc success(req: Request): Future[void] =
+  req.seeOther(@[
+    ("Set-Cookie", "success=ok; hoge=fuga")
+  ])
+
+proc failure(req: Request): Future[void] =
+  req.seeOther(@[
+    ("Set-Cookie", "failure=ng")
+  ])
 
 template build(body: varargs[string]): string =
   ""
@@ -76,12 +98,16 @@ proc router*(req: Request) {.async, gcsafe.}  =
       await resp(req, layout books.index())
     
     if req.match("/books/create", HttpGet):
-      await resp(req, layout books.create())
+      let messages = newSeq[string]()
+      let body = books.create(messages)
+      await resp(req, layout body)
 
     if req.match("/books/create", HttpPost):
-      let body = books.validate(req.body)
-
-      await req.redirect()
+      try:
+        let body = books.validate(req.body)
+        await req.success()
+      except:
+        await req.failure()
 
     await req.respond(Http404, $Http404)
 
