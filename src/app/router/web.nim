@@ -29,6 +29,9 @@ proc match(req: Request, path: string, reqMethod: HttpMethod): bool =
 proc redirect(req: Request, path: string): Future[void] =
   req.respond(Http303, "", {"location": path}.newHttpHeaders())
 
+proc redirect(req: Request): Future[void] =
+  req.redirect(req.url.path)
+
 template build(body: varargs[string]): string =
   ""
 
@@ -78,7 +81,7 @@ proc router*(req: Request) {.async, gcsafe.}  =
     if req.match("/books/create", HttpPost):
       let body = books.validate(req.body)
 
-      await req.redirect("/")
+      await req.redirect()
 
     await req.respond(Http404, $Http404)
 
