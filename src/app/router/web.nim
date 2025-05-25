@@ -1,8 +1,6 @@
 import std/strutils
 import std/htmlgen
 import std/sequtils
-import std/httpcore
-import std/tables
 
 import src/shared/handler
 import src/pages/home
@@ -64,19 +62,27 @@ proc layout(body: string): string =
 
 
 proc router*(req: Request) {.async, gcsafe.}  =
-   if req.match("/", HttpGet):
-    await resp(req, layout home.index())
+  try:
+    if req.match("/", HttpGet):
+      await resp(req, layout home.index())
 
-   if req.match("/books", HttpGet):
-    await resp(req, layout books.index())
-   
-   if req.match("/books/create", HttpGet):
-    await resp(req, layout books.create())
+    if req.match("/books", HttpGet):
+      await resp(req, layout books.index())
+    
+    if req.match("/books/create", HttpGet):
+      await resp(req, layout books.create())
 
-   if req.match("/books/create", HttpPost):
-    let params = req.body
-    let body = books.create(params)
+    if req.match("/books/create", HttpPost):
+      let body = books.validate(req.body)
+    
+      await resp(req, layout "body", "cookie")
 
-    await resp(req, layout books.create(), "cookie")
+    await req.respond(Http404, $Http404)
 
-   await req.respond(Http404, $Http404)
+  except ValidateError:
+    let errors = getCurrentException()
+    req.headers.clear()
+    await req.respond(Http400, $Http400)
+
+  except:
+    await req.respond(Http500, $Http500)

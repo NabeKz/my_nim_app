@@ -1,7 +1,6 @@
 import std/strutils
 import std/sequtils
 import std/tables
-import std/options
 
 import src/pages/books/list
 import src/pages/books/create as c
@@ -9,25 +8,12 @@ import src/pages/books/create as c
 const index* = list.get
 const create* = c.get
 
-type ResultKind = enum
-  Ok
-  Err
-
-type Results[T, E] = ref object
-  case kind: ResultKind
-  of ResultKind.Ok:
-    ok: T
-  of ResultKind.Err:
-    err: E
-
 
 type CreateParams = ref object
   title: string
 
-type ValidateError = ref object of ValueError
-  field*: string
-  messages*: seq[string]
-
+type ValidateError* = ref object of ValueError
+  errors*: seq[string]
 
 func build(params: Table[string, string]): CreateParams =
   CreateParams(
@@ -41,7 +27,7 @@ proc parseParams(params: string): Table[string, string] =
     .mapIt((it[0], it[1]))
     .toTable()
 
-proc validate(body: string): CreateParams{.raises: [ValidateError].} = 
+proc validate*(body: string): CreateParams{.raises: [ValidateError].} = 
   var errors = newSeqOfCap[string](50)
   let params = parseParams(body).build()
   if params.title.isEmptyOrWhitespace():
@@ -50,13 +36,6 @@ proc validate(body: string): CreateParams{.raises: [ValidateError].} =
     errors.add("title must be 50 length")
   
   if errors.len > 0:
-    var e = ValidateError(field: "title", msg: "hoge", messages: @[])
-    raise e
-  
-  params
-  
-
-
-when isMainModule:
-  let params = validate("title2=a&description=b")
-  echo params.title
+    raise ValidateError(errors: errors)
+  else:
+    params
