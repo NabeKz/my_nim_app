@@ -1,30 +1,62 @@
-import std/htmlgen
+import std/strutils
+import std/sequtils
+import std/tables
+import std/options
 
-const header = "books"
+import src/pages/books/list
+import src/pages/books/create as c
 
-func index*(): string = 
-  htmlgen.div(
-    "book"
+const index* = list.get
+const create* = c.get
+
+type ResultKind = enum
+  Ok
+  Err
+
+type Results[T, E] = ref object
+  case kind: ResultKind
+  of ResultKind.Ok:
+    ok: T
+  of ResultKind.Err:
+    err: E
+
+
+type CreateParams = ref object
+  title: string
+
+type ValidateError = ref object of ValueError
+  field*: string
+  messages*: seq[string]
+
+
+func build(params: Table[string, string]): CreateParams =
+  CreateParams(
+    title: params.getOrDefault("title", "")
   )
 
+proc parseParams(params: string): Table[string, string] =
+  params
+    .split("&")
+    .mapIt(it.split("=", 1))
+    .mapIt((it[0], it[1]))
+    .toTable()
 
-func input(label: string): string =
-  htmlgen.label(
-    `for` = label,
-    label,
-    htmlgen.input(
-      id = label
-    )
-  )
-
-
-func create*(): string = 
-  htmlgen.div(
-    htmlgen.form(
-      action = "/books",
-      `method` = "POST",
-      input("title"),
-      "<button> submit </button>"
-    )
-  )
+proc validate(body: string): CreateParams{.raises: [ValidateError].} = 
+  var errors = newSeqOfCap[string](50)
+  let params = parseParams(body).build()
+  if params.title.isEmptyOrWhitespace():
+    errors.add("title is required")
+  if params.title.len > 50:
+    errors.add("title must be 50 length")
   
+  if errors.len > 0:
+    var e = ValidateError(field: "title", msg: "hoge", messages: @[])
+    raise e
+  
+  params
+  
+
+
+when isMainModule:
+  let params = validate("title2=a&description=b")
+  echo params.title

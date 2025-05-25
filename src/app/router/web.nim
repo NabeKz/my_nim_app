@@ -1,5 +1,8 @@
 import std/strutils
 import std/htmlgen
+import std/sequtils
+import std/httpcore
+import std/tables
 
 import src/shared/handler
 import src/pages/home
@@ -12,11 +15,18 @@ const headers = {
 proc resp(req: Request, status: HttpCode, content: string): Future[void] =
   req.respond(status, content, headers.newHttpHeaders())
 
+proc resp(req: Request, content: string, cookie: string): Future[void] =
+  let headers = headers.items.toSeq().concat(@[
+    ("Set-Cookie", "hoge=fuga;errors=piyo"),
+  ])
+
+  req.respond(Http200, content, headers.newHttpHeaders())
+
 proc resp(req: Request, content: string): Future[void] =
   resp(req, Http200, content)
 
 proc match(req: Request, path: string, reqMethod: HttpMethod): bool =
-  req.url.path == path
+  req.url.path == path and req.reqMethod == reqMethod
 
 template build(body: varargs[string]): string =
   ""
@@ -62,5 +72,11 @@ proc router*(req: Request) {.async, gcsafe.}  =
    
    if req.match("/books/create", HttpGet):
     await resp(req, layout books.create())
+
+   if req.match("/books/create", HttpPost):
+    let params = req.body
+    let body = books.create(params)
+
+    await resp(req, layout books.create(), "cookie")
 
    await req.respond(Http404, $Http404)
