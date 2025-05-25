@@ -1,11 +1,61 @@
+import std/strutils
+import std/htmlgen
+
 import src/shared/handler
+import src/pages/home
 
 const headers = { 
   "Content-Type": "text/html charset=utf8;"
 }
 
+proc resp(req: Request, status: HttpCode, content: string): Future[void] =
+  req.respond(status, content, headers.newHttpHeaders())
+
+proc resp(req: Request, content: string): Future[void] =
+  resp(req, Http200, content)
+
+proc match(req: Request, path: string, reqMethod: HttpMethod): bool =
+  req.url.path == path
+
+template build(body: varargs[string]): string =
+  ""
+
+proc asideNav(path: string): string =
+  htmlgen.li(
+    htmlgen.a(
+      href = path,
+      path
+    )
+  )
+
+proc layout(body: string): string =  
+  htmlgen.head(
+    htmlgen.style(
+      "ul, li { margin: 0 }",
+      ".layout { display: flex; margin:auto; max-width: 1400px; height: 100vh; gap: 24px; padding: 36px; }",
+      ".aside { display: flex; }",
+    ),
+    htmlgen.div(
+      class = "layout",
+      htmlgen.aside(
+        class = "aside",
+        htmlgen.ul(
+        """
+          <li><a href=/siginin >sigin</a></li>
+          <li><a href=/siginin >books</a></li>
+        """,
+        ),
+      ),
+      body
+    )
+  )
+
+
 proc router*(req: Request) {.async, gcsafe.}  =
-   if req.url.path == "/":
-    await req.respond(Http200, "Hello", headers.newHttpHeaders())
-      
+   if req.match("/", HttpGet):
+    await resp(req, layout home.index())
+
+   if req.match("/ticket", HttpPost):
+    await resp(req, layout home.index())
+
    await req.respond(Http404, $Http404)
