@@ -25,6 +25,9 @@ proc resp(req: Request, content: string): Future[void] =
 
 proc match(req: Request, path: string, reqMethod: HttpMethod): bool =
   req.url.path == path and req.reqMethod == reqMethod
+  
+proc redirect(req: Request, path: string): Future[void] =
+  req.respond(Http303, "", {"location": path}.newHttpHeaders())
 
 template build(body: varargs[string]): string =
   ""
@@ -74,14 +77,13 @@ proc router*(req: Request) {.async, gcsafe.}  =
 
     if req.match("/books/create", HttpPost):
       let body = books.validate(req.body)
-    
-      await resp(req, layout "body", "cookie")
+
+      await req.redirect("/")
 
     await req.respond(Http404, $Http404)
 
   except ValidateError:
     let errors = getCurrentException()
-    req.headers.clear()
     await req.respond(Http400, $Http400)
 
   except:
