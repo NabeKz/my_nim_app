@@ -9,10 +9,10 @@ func toLi(items: seq[Book]): string =
     result.add htmlgen.li(item.title)
 
 
-proc get*(repository: BookListCommand): string = 
+proc get*(repository: BookRepository): string = 
   htmlgen.div(
     "book",
     htmlgen.ul(
-      repository().toLi()
+      repository.list().toLi()
     )
   )

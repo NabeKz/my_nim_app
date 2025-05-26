@@ -96,7 +96,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
       await resp(req, layout home.index())
 
     if req.match("/books", HttpGet):
-      await resp(req, layout books.index(ctx.books.list))
+      await resp(req, layout books.index(ctx.books))
     
     if req.match("/books/create", HttpGet):
       let messages = newSeq[string]()
