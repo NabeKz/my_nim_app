@@ -7,7 +7,7 @@ type
   BookListCommand* = ((){.gcsafe.} -> seq[Book])
   
   BookRepository* = ref object
-    list: BookListCommand
+    list*: BookListCommand
 
 
 func newBook*(title: string): Book =
@@ -20,6 +20,3 @@ func newBookRepository*(list: BookListCommand): BookRepository =
   BookRepository(
     list: list
   )
-
-func list*(self: BookRepository): BookListCommand =
-  self.list
