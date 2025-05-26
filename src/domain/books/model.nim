@@ -1,18 +1,22 @@
+import std/sugar
+
 type 
   Book* = ref object
     title: string
 
-  BookListCommand = proc(): seq[Book]
+  BookListCommand* = ((){.gcsafe.} -> seq[Book])
   
   BookRepository* = ref object
     list: BookListCommand
 
 
-proc newBook*(title: string): Book =
+func newBook*(title: string): Book =
   Book(title: title)
 
+func title*(self: Book): string =
+  self.title
 
-proc newBookRepository*(list: BookListCommand): BookRepository =
+func newBookRepository*(list: BookListCommand): BookRepository =
   BookRepository(
     list: list
   )

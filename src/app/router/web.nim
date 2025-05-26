@@ -90,13 +90,13 @@ proc layout(body: string): string =
   )
 
 
-proc router*(context: Context, req: Request) {.async, gcsafe.}  =
+proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
   try:
     if req.match("/", HttpGet):
       await resp(req, layout home.index())
 
     if req.match("/books", HttpGet):
-      await resp(req, layout books.index())
+      await resp(req, layout books.index(ctx.books))
     
     if req.match("/books/create", HttpGet):
       let messages = newSeq[string]()
