@@ -1,5 +1,4 @@
 import std/htmlgen
-import std/sequtils
 
 import src/domain/books/model
 
