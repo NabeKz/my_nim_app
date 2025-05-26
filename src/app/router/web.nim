@@ -2,6 +2,7 @@ import std/strutils
 import std/htmlgen
 import std/sequtils
 
+import src/app/router/context
 import src/shared/handler
 import src/pages/shared
 import src/pages/home
@@ -89,7 +90,7 @@ proc layout(body: string): string =
   )
 
 
-proc router*(req: Request) {.async, gcsafe.}  =
+proc router*(context: Context, req: Request) {.async, gcsafe.}  =
   try:
     if req.match("/", HttpGet):
       await resp(req, layout home.index())

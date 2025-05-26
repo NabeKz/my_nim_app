@@ -3,7 +3,7 @@ import std/asyncdispatch
 
 import src/shared/db/conn
 import src/shared/handler
-import src/dependency
+import src/context
 import src/app/router/[api, web]
 
 type 
@@ -22,11 +22,13 @@ proc run(self: App) {.async.} =
   self.server.listen(Port 5000)
   echo "server is running at http://localhost:5000"
   
-  let deps = newDependency()
+  let ctx = newContext()
+  let cb = proc(req: Request) {.async.} =
+    await web.router(ctx, req)
 
   while true:
     if self.server.shouldAcceptRequest():
-      await self.server.acceptRequest(web.router)
+      await self.server.acceptRequest(cb)
     else:
       await sleepAsync(500)
 
