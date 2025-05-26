@@ -9,7 +9,7 @@ type
   
   BookRepository* = ref object
     list: BookListCommand
-    save: BookListCommand
+    save: BookSaveCommand
 
 func newBook*(title: string): Book =
   Book(title: title)
