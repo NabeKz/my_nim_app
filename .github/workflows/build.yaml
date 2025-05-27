@@ -16,8 +16,8 @@ jobs:
       - name: install choosenim
         run: curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
 
-      - name: export env
-        run:  export PATH=/home/runner/.nimble/bin:$PATH
+      - name: set path
+        run:  echo /home/runner/.nimble/bin >> $GITHUB_PATH
       
       - name: echo nim version
         run:  nim -v
