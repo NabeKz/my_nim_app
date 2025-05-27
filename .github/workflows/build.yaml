@@ -18,7 +18,10 @@ jobs:
 
       - name: set path
         run:  echo ~/.nimble/bin >> $GITHUB_PATH
-      
+
+      - name: echo nim version
+        run:  nim -v
+    
       - uses: actions/cache@v4
         id: cache-nimble
         with:
@@ -27,9 +30,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nimble-
 
-      - name: Generate Prime Numbers
-        if: steps.cache-nimble.outputs.cache-hit == 'true'
-        run: echo hit
-
-      - name: echo nim version
-        run:  nim -v
+      - name: build
+        run: nimble build
+ 

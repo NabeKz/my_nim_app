@@ -2,10 +2,10 @@ import std/unittest
 import std/options
 import std/json
 
-import src/entities/product/repository
-import src/entities/product/usecase
+import src/entities/product/adaptor/repository/on_memory
+import src/entities/product/usecase/create
 
-let repo = newProductRepositoryOnMemory().toInterface()
+let repo = newProductRepositoryOnMemory().saveCommand
 
 
 block valid:
@@ -17,9 +17,9 @@ block valid:
     stock: 10,
   )
 
-  let errors = addUsecase.invoke(value)
+  let errors = addUsecase(value)
 
-  if (errors.isSome()):
+  if (errors.len > 0):
     raise newException(ValueError, $errors)
   
-  check errors.isNone() == true
+  check errors.len == 0

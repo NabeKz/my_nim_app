@@ -1,1 +1,3 @@
-megatest:processing: [0] tests/product/test_usecase.nim
+megatest:processing: [0] tests/product/test_controller.nim
+megatest:processing: [1] tests/product/test_usecase.nim
+megatest:processing: [2] tests/product/testing.nim
