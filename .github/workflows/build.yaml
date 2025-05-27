@@ -1,6 +1,6 @@
 name: build
 on:
-  push:
+  # push:
   #   branches:
   #     - main
   workflow_dispatch:
@@ -22,6 +22,7 @@ jobs:
 
       - name: install choosenim
         run: curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+        working-directory: ~/
 
       - name: set path
         run:  echo ~/runner/.nimble/bin >> $GITHUB_PATH
