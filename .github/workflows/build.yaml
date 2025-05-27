@@ -11,12 +11,10 @@ jobs:
     if: github.event.action != 'labeled'
     runs-on: ubuntu-latest
     steps:
-      # - uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
 
       - name: install choosenim
         run: curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
-
 
       - name: set path
         run:  echo ~/.nimble/bin >> $GITHUB_PATH
@@ -29,7 +27,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nimble-
 
-      
       - name: Generate Prime Numbers
         if: steps.cache-nimble.outputs.cache-hit == 'true'
         run: echo hit
