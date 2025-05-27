@@ -15,3 +15,6 @@ jobs:
 
       - name: install choosenim
         run: curl https://nim-lang.org/choosenim/init.sh -sSf | sh -- -y
+
+      - name: echo nim version
+        run: nim -v
