@@ -16,3 +16,4 @@ outputExpected.txt
 nimble.develop
 nimble.paths
 *.out
+outputExpected.txt

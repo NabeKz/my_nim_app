@@ -1,9 +1,8 @@
 name: build
 on:
-  # push:
-  #   branches:
-  #     - main
-  workflow_dispatch:
+  push:
+    branches:
+      - main
     
 
 jobs:
@@ -14,4 +13,22 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: install choosenim
-        run: curl https://nim-lang.org/choosenim/init.sh -sSf | sh -- -y
+        run: curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
+
+      - name: set path
+        run:  echo ~/.nimble/bin >> $GITHUB_PATH
+
+      - name: echo nim version
+        run:  nim -v
+    
+      - uses: actions/cache@v4
+        id: cache-nimble
+        with:
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-${{ hashFiles('*.nimble') }}
+          restore-keys: |
+            ${{ runner.os }}-nimble-
+
+      - name: build
+        run: nimble build
+ 

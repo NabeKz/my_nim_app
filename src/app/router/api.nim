@@ -1,4 +1,5 @@
-import src/shared/handler
+import std/asynchttpserver
+import std/asyncdispatch
 
 proc router*(req: Request) {.async, gcsafe.}  =
    if req.url.path == "/":
