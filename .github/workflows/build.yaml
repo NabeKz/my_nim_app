@@ -1,6 +1,6 @@
 name: build
 on:
-  # push:
+  push:
   #   branches:
   #     - main
   workflow_dispatch:
@@ -25,7 +25,7 @@ jobs:
         working-directory: ~/
 
       - name: set path
-        run:  echo ~/runner/.nimble/bin >> $GITHUB_PATH
+        run:  echo ~/.nimble/bin >> $GITHUB_PATH
       
       - name: echo nim version
         run:  nim -v
