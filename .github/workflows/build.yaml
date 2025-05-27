@@ -22,7 +22,7 @@ jobs:
 
       - name: install choosenim
         run: curl https://nim-lang.org/choosenim/init.sh -sSf | sh -s -- -y
-        working-directory: ~/
+        working-directory: /home
 
       - name: set path
         run:  echo ~/.nimble/bin >> $GITHUB_PATH
