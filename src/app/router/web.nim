@@ -3,6 +3,7 @@ import std/asyncdispatch
 import std/strutils
 import std/htmlgen
 import std/sequtils
+import std/re
 
 import src/app/router/context
 import src/pages/shared
@@ -14,14 +15,20 @@ const headers = {
   "Content-Type": "text/html charset=utf8;"
 }
 
+template suspend*(body: untyped): untyped =
+  try:
+    body
+  except:
+    await req.failure()
+
 proc resp(req: Request, status: HttpCode, content: string): Future[void] =
   req.respond(status, content, headers.newHttpHeaders())
 
 proc resp(req: Request, content: string): Future[void] =
   resp(req, Http200, content)
 
-proc match(req: Request, path: string, reqMethod: HttpMethod): bool =
-  req.url.path == path and req.reqMethod == reqMethod
+proc match(req: Request, path: string, reqMethod: HttpMethod): bool{.gcsafe.} =
+  req.url.path.match(re path) and req.reqMethod == reqMethod
 
 proc redirect(req: Request, path: string, headers: seq[tuple[key: string, value: string]]): Future[void] =
   req.respond(Http303, "", @[
@@ -98,12 +105,16 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
       await resp(req, layout body)
 
     if req.match("/books/create", HttpPost):
-      try:
+      suspend:
         let body = books.validate(req.body)
         books.save(ctx.books, body)
         await req.success("/books")
-      except:
-        await req.failure()
+      
+    if req.match("/books/delete/\\d+$", HttpDelete):
+      suspend:
+        let body = books.validate(req.body)
+        books.save(ctx.books, body)
+        await req.success("/books")
 
     await req.respond(Http404, $Http404)
 
