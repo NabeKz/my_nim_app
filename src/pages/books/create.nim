@@ -18,7 +18,6 @@ func get*(message: seq[string]): string =
       action = "/books/create",
       `method` = "POST",
       input("title"),
-      input("description"),
       "<button> submit </button>"
     )
   )

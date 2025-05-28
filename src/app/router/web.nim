@@ -5,7 +5,6 @@ import std/htmlgen
 import std/sequtils
 
 import src/app/router/context
-import src/shared/handler
 import src/pages/shared
 import src/pages/home
 import src/pages/books
@@ -91,6 +90,9 @@ proc layout(body: string): string =
     )
   )
 
+proc getCookie(req: Request): seq[string] =
+  let cookies = req.headers["cookie"]
+  cookies.split("; ")
 
 proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
   try:
@@ -101,7 +103,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
       await resp(req, layout books.index(ctx.books))
     
     if req.match("/books/create", HttpGet):
-      let messages = newSeq[string]()
+      let messages = req.getCookie()
       let body = books.create(messages)
       await resp(req, layout body)
 
