@@ -21,38 +21,23 @@ proc resp(req: Request, content: string): Future[void] =
 
 proc match(req: Request, path: string, reqMethod: HttpMethod): bool =
   req.url.path == path and req.reqMethod == reqMethod
-  
+
 proc redirect(req: Request, path: string, headers: seq[tuple[key: string, value: string]]): Future[void] =
   req.respond(Http303, "", {
-      "location": path
+      "location": path,
     }
     .items.toSeq()
     .concat(headers)
     .newHttpHeaders()
   )
 
-proc seeOther(req: Request, headers: seq[tuple[key: string, value: string]]): Future[void] =
-  req.respond(Http303, "", {
-      "location": req.url.path,
-    }
-    .items.toSeq()
-    .concat(headers)
-    .newHttpHeaders()
-  )
-
-proc redirect(req: Request, path: string): Future[void] =
-  req.redirect(path, @[])
-
-proc redirect(req: Request): Future[void] =
-  req.redirect(req.url.path, @[])
-
-proc success(req: Request): Future[void] =
-  req.seeOther(@[
-    ("Set-Cookie", "success=ok; hoge=fuga")
+proc success(req: Request, path: string): Future[void] =
+  req.redirect(path, @[
+    ("Set-Cookie", "success=ok;")
   ])
 
 proc failure(req: Request): Future[void] =
-  req.seeOther(@[
+  req.redirect(req.url.path, @[
     ("Set-Cookie", "failure=ng")
   ])
 
@@ -91,9 +76,9 @@ proc layout(body: string): string =
   )
 
 proc getCookie(req: Request): seq[string] =
-  let cookies = req.headers["cookie"]
-  cookies.split("; ")
-
+  if req.headers.hasKey("cookie"):
+    result = req.headers["cookie"].split(";")
+  
 proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
   try:
     if req.match("/", HttpGet):
@@ -111,7 +96,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
       try:
         let body = books.validate(req.body)
         books.save(ctx.books, body)
-        await req.success()
+        await req.success("/books")
       except:
         await req.failure()
 
