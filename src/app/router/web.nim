@@ -24,24 +24,25 @@ proc match(req: Request, path: string, reqMethod: HttpMethod): bool =
   req.url.path == path and req.reqMethod == reqMethod
 
 proc redirect(req: Request, path: string, headers: seq[tuple[key: string, value: string]]): Future[void] =
-  req.respond(Http303, "", {
-      "location": path,
-    }
-    .items.toSeq()
+  req.respond(Http303, "", @[
+    ("Location", path),
+  ]
     .concat(headers)
     .newHttpHeaders()
   )
 
 proc success(req: Request, path: string): Future[void] =
-  let cookie = cookies.setCookie("success", "ok")
+  let cookie = cookies.setCookie("success", "ok").string
   req.redirect(path, @[
     ("Set-Cookie", cookie)
   ])
 
 proc failure(req: Request): Future[void] =
-  let cookie = cookies.deleteCookie("success")
+  var cookie = cookies.deleteCookie("success")
+  cookie = cookies.setCookie(cookie, "error", "Something went wrong", req.url.path)
+
   req.redirect(req.url.path, @[
-    ("Set-Cookie", cookie)
+    ("Set-Cookie", cookie.string)
   ])
 
 template build(body: varargs[string]): string =
