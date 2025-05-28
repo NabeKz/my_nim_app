@@ -8,6 +8,7 @@ import src/app/router/context
 import src/pages/shared
 import src/pages/home
 import src/pages/books
+import ./cookies
 
 const headers = { 
   "Content-Type": "text/html charset=utf8;"
@@ -32,13 +33,15 @@ proc redirect(req: Request, path: string, headers: seq[tuple[key: string, value:
   )
 
 proc success(req: Request, path: string): Future[void] =
+  let cookie = cookies.setCookie("success", "ok")
   req.redirect(path, @[
-    ("Set-Cookie", "success=ok;")
+    ("Set-Cookie", cookie)
   ])
 
 proc failure(req: Request): Future[void] =
+  let cookie = cookies.deleteCookie("success")
   req.redirect(req.url.path, @[
-    ("Set-Cookie", "failure=ng")
+    ("Set-Cookie", cookie)
   ])
 
 template build(body: varargs[string]): string =
@@ -76,8 +79,7 @@ proc layout(body: string): string =
   )
 
 proc getCookie(req: Request): seq[string] =
-  if req.headers.hasKey("cookie"):
-    result = req.headers["cookie"].split(";")
+  req.headers.getOrDefault("cookie").toString().split("; ")
   
 proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
   try:

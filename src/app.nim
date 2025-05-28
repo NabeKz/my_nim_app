@@ -2,9 +2,8 @@ import std/asynchttpserver
 import std/asyncdispatch
 
 import src/shared/db/conn
-import src/shared/handler
 import src/context
-import src/app/router/[api, web]
+import src/app/router/web
 
 type 
   App = ref object
