@@ -1,5 +1,8 @@
 import ./model
 
+type BookRepositoryOnMemory* = ref object of BookRepository
+  items: seq[Book]
+
 proc newBooksRepositoryOnMemory*(): BookRepository =
   var books: seq[Book] = @[
     newBook(title = "hoge"),
@@ -7,5 +10,6 @@ proc newBooksRepositoryOnMemory*(): BookRepository =
   ]
   
   newBookRepository(
-    list =  proc(): seq[Book] = books
+    list =  proc(): seq[Book] = books,
+    save = proc(model: Book): void = books.add(model)
   )

@@ -1,3 +1,4 @@
+import std/strutils
 import std/sugar
 
 type 
@@ -7,23 +8,27 @@ type
   BookListCommand = ((){.gcsafe.} -> seq[Book])
   BookSaveCommand = ((Book){.gcsafe.} -> void)
   
-  BookRepository* = ref object
+  BookRepository* = ref object of RootObj
     list: BookListCommand
     save: BookSaveCommand
 
-func newBook*(title: string): Book =
+func newBook*(title: string): Book{.raises: [ValueError].} =
+  if title.isEmptyOrWhitespace():
+    raise newException(ValueError, "Title cannot be empty or whitespace")
+
   Book(title: title)
 
 func title*(self: Book): string =
   self.title
 
-func newBookRepository*(list: BookListCommand): BookRepository =
+func newBookRepository*(list: BookListCommand, save: BookSaveCommand): BookRepository =
   BookRepository(
-    list: list
+    list: list,
+    save: save
   )
 
 proc list*(self: BookRepository): seq[Book] =
   self.list()
 
-# proc invoke*(self: BookRepository): void =
-#   self.save()
+proc save*(self: BookRepository, model: Book): void =
+  self.save(model)

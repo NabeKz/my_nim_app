@@ -1,6 +1,7 @@
 import std/strutils
 import std/tables
 
+import src/domain/books/model
 import src/pages/books/list
 import src/pages/books/create as c
 import src/pages/shared
@@ -25,3 +26,6 @@ proc validate*(body: string): CreateParams{.raises: [ValidateError].} =
       errors.add("title is required")
     if model.title.len > 50:
       errors.add("title must be 50 length")
+
+proc save*(repository: BookRepository, params: CreateParams): void =
+  repository.save newBook(params.title)

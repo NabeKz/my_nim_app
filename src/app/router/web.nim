@@ -110,6 +110,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
     if req.match("/books/create", HttpPost):
       try:
         let body = books.validate(req.body)
+        books.save(ctx.books, body)
         await req.success()
       except:
         await req.failure()
