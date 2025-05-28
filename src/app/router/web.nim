@@ -38,11 +38,13 @@ proc success(req: Request, path: string): Future[void] =
   ])
 
 proc failure(req: Request): Future[void] =
-  var cookie = cookies.deleteCookie("success")
-  cookie = cookies.setCookie(cookie, "error", "Something went wrong", req.url.path)
+  let cookie = cookies
+      .deleteCookie("success")
+      .setCookie("error", "Something went wrong", req.url.path)
+      .string
 
   req.redirect(req.url.path, @[
-    ("Set-Cookie", cookie.string)
+    ("Set-Cookie", cookie)
   ])
 
 template build(body: varargs[string]): string =
