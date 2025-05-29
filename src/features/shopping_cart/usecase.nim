@@ -5,7 +5,7 @@ import std/sugar
 import ./model
 
 
-type 
+type
   CartFetchInputDto* = JsonNode
   CartFetchOutputDto* = JsonNode
   CartFetchUsecase* = ((CartFetchInputDto){.gcsafe.} -> CartFetchOutputDto)
@@ -27,8 +27,8 @@ proc newCartFetchUsecase*(command: ShoppingCartFetchEvent): CartFetchUsecase =
   (dto: CartFetchInputDto) => %* {}
 
 
-proc newCartAddUsecase*(event: ShoppingCartAddEvent): CartAddUsecase = 
+proc newCartAddUsecase*(event: ShoppingCartAddEvent): CartAddUsecase =
   (dto: ProductItemInputDto) => (
-    let data = to(dto, ProductItem) 
+    let data = to(dto, ProductItem)
     event(data)
   )

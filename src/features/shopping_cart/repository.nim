@@ -12,7 +12,8 @@ type
     cart: ShoppingCart
 
 
-func init*(_: type ShoppingCartQueryServiceSqlite, db: DbConn): ShoppingCartQueryServiceSqlite = 
+func init*(_: type ShoppingCartQueryServiceSqlite,
+    db: DbConn): ShoppingCartQueryServiceSqlite =
   ShoppingCartQueryServiceSqlite(db: db)
 
 
@@ -24,7 +25,7 @@ proc newShoppingCartRepositoryOnMemory*(): ShoppingCartRepositoryOnMemory =
 
 proc fetchCommand*(self: ShoppingCartRepositoryOnMemory): ShoppingCartFetchEvent =
   () => self.cart
-  
+
 
 proc saveCommand*(self: ShoppingCartRepositoryOnMemory): ShoppingCartAddEvent =
   (item: ProductItem) => (

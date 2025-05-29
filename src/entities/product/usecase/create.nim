@@ -10,7 +10,7 @@ type
     stock*: uint32
 
 
-func validate(self: ProductInputDto): seq[string] = 
+func validate(self: ProductInputDto): seq[string] =
   if self.name == "":
     result.add("name is required")
 
@@ -24,7 +24,7 @@ func to(self: ProductInputDto, _: type ProductWriteModel): ProductWriteModel =
   )
 
 
-proc newProductCreateUsecase*(command: ProductCreateCommand): ProductCreateUsecase = 
+proc newProductCreateUsecase*(command: ProductCreateCommand): ProductCreateUsecase =
   (dto: ProductInputDto) => (
     let errors = dto.validate()
     if errors.len > 0:

@@ -16,7 +16,7 @@ type
       val*: T
     of kErr:
       errors*: seq[string]
-      
+
   ValidateAble* = concept x
     x.validate() is seq[string]
 

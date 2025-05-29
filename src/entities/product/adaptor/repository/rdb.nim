@@ -1,5 +1,5 @@
 import src/shared/db/conn
-import src/entities/product/domain/[model,repository]
+import src/entities/product/domain/[model, repository]
 
 
 type ProductRepositoryOnSqlite* = ref object of ProductRepository

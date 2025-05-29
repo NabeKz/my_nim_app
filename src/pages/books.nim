@@ -19,8 +19,8 @@ func build(params: Table[string, string]): CreateParams =
     title: params.getOrDefault("title", "")
   )
 
-proc validate*(body: string): CreateParams{.raises: [ValidateError].} = 
-  
+proc validate*(body: string): CreateParams{.raises: [ValidateError].} =
+
   shared.check body, build:
     if model.title.isEmptyOrWhitespace():
       errors.add("title is required")
@@ -29,3 +29,6 @@ proc validate*(body: string): CreateParams{.raises: [ValidateError].} =
 
 proc save*(repository: BookRepository, params: CreateParams): void =
   repository.save newBook(params.title)
+
+proc delete*(repository: BookRepository, id: string): void =
+  repository.delete id

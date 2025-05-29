@@ -11,7 +11,7 @@ func input(label: string): string =
   )
 
 
-func get*(message: seq[string]): string = 
+func get*(message: seq[string]): string =
   htmlgen.div(
     $message,
     htmlgen.form(

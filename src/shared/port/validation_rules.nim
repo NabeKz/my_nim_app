@@ -29,4 +29,5 @@ func minmax*(_: type ValidationMessage, field: string, a,
 
 template max*(a: int){.pragma.}
 func max*(field: string, a: int): bool = field.len < a
-func max*(_: type ValidationMessage, field: string, a: int): string = &"{field}'s len must be within {a}"
+func max*(_: type ValidationMessage, field: string,
+    a: int): string = &"{field}'s len must be within {a}"

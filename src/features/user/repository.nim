@@ -11,7 +11,7 @@ generateDeSerialize(UserRecord)
 proc list*(self: UserRdbRepository): seq[UserRecord] =
   for record in self.db.select(UserRecord()):
     result.add deSerialize(record)
-  
+
 
 proc create*(self: UserRdbRepository, model: User): int64 =
   self.db.save(model)
@@ -23,7 +23,7 @@ func toInterface*(self: UserRdbRepository): UserRepository =
     save: proc(user: User): int64 = self.create(user)
   )
 
-func newUserRepository*(db: DbConn): UserRepository = 
+func newUserRepository*(db: DbConn): UserRepository =
   UserRdbRepository(db: db).toInterface()
 
 
@@ -34,4 +34,3 @@ when isMainModule:
     let repository = newUserRepository(db)
     for r in repository.list():
       debugEcho %r
-      

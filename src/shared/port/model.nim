@@ -49,9 +49,9 @@ func newField(identDefs: NimNode): Field =
   let pragmaNode = findChildRec(identDefs, nnkPragma)
   let pragmas = toSeq(pragmaNode.children).mapIt(newPragma it)
   Field(name: name, pragmas: pragmas)
-  
 
-func getObjecty(node: NimNode): NimNode = 
+
+func getObjecty(node: NimNode): NimNode =
   node.expectKind nnkTypeDef
   if node[2].kind == nnkRefTy:
     node[2][0]
@@ -86,7 +86,7 @@ macro autoMigrate*(t: typedesc): untyped =
   let impl = getImpl(t)
   let recList = findChildRec(impl, nnkRecList)
   let fields = recList.mapIt((getNameField(it[0]).repr, it[1].repr))
-  
+
   quote do:
     for f in `fields`:
       echo f[0], " : " & f[1]

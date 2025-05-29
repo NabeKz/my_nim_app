@@ -5,9 +5,10 @@ import src/entities/product/usecase/[list, create]
 import src/features/shopping_cart/[usecase, controller, repository]
 import src/features/information/[list, adaptor/repository/on_memory]
 import src/features/rental/model
-import src/features/rental/infrastructure/[http/rental_controller, repository/on_memory]
+import src/features/rental/infrastructure/[http/rental_controller,
+    repository/on_memory]
 
-type 
+type
   Dependency* = ref object
     productListController*: ProductListController
     productPostController*: ProductPostController
@@ -15,7 +16,7 @@ type
     shoppingCartPostController*: ShoppingCartPostController
     informationListController*: InformationListController
     rentalController*: RentalController
-  
+
 proc newDependency*(): Dependency =
   let productRepository = newProductRepositoryOnMemory()
   let shoppingCartRepository = newShoppingCartRepositoryOnMemory()
@@ -24,32 +25,32 @@ proc newDependency*(): Dependency =
 
   Dependency(
     productListController:
-      productRepository.listCommand().
-      newProductListUsecase().
-      newProductListController(),
-    
+    productRepository.listCommand().
+    newProductListUsecase().
+    newProductListController(),
+
     productPostController:
-      productRepository.saveCommand().
-      newProductCreateUsecase().
-      newProductPostController(),
-    
+    productRepository.saveCommand().
+    newProductCreateUsecase().
+    newProductPostController(),
+
     shoppingCartGetController:
-      shoppingCartRepository.fetchCommand().
-      newCartFetchUsecase().
-      newShoppingCartGetController(),
+    shoppingCartRepository.fetchCommand().
+    newCartFetchUsecase().
+    newShoppingCartGetController(),
 
     shoppingCartPostController:
-      shoppingCartRepository.saveCommand().
-      newCartAddUsecase().
-      newShoppingCartPostController(),
+    shoppingCartRepository.saveCommand().
+    newCartAddUsecase().
+    newShoppingCartPostController(),
 
     informationListController:
-      informationRepository.listCommand().
-      newInformationFetchListUsecase().
-      newInformationListController(),
+    informationRepository.listCommand().
+    newInformationFetchListUsecase().
+    newInformationListController(),
 
     rentalController:
-      newRentalRepositoryOnMemory().
-      newExtensionUsecase().
-      newRentalController(),
+    newRentalRepositoryOnMemory().
+    newExtensionUsecase().
+    newRentalController(),
   )

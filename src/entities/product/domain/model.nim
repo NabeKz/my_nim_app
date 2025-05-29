@@ -5,7 +5,7 @@ type
     name*: string
     description*: string
     price*: uint32
-    stock*: uint32 
+    stock*: uint32
 
   ProductReadModel* = ref object
     id*: int64
@@ -18,7 +18,8 @@ type
   ProductCreateCommand* = (model: ProductWriteModel) -> void
 
 
-func newProduct*(name: string, description: string, price: uint32, stock: uint32): ProductWriteModel =
+func newProduct*(name: string, description: string, price: uint32,
+    stock: uint32): ProductWriteModel =
   ProductWriteModel(
     name: name,
     description: description,

@@ -5,13 +5,13 @@ import src/entities/product/usecase/list
 import src/shared/handler
 
 
-type 
+type
   ProductListController* = Handler
 
 
 proc newProductListController*(usecase: ProductListUsecase): ProductListController =
   let data = usecase()
-  
+
   ProductListController(
     (req: Request) => req.json(Http200, data)
   )

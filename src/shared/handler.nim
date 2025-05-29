@@ -10,7 +10,7 @@ type ContentType = enum
   json = "application/json"
 
 
-type 
+type
   Handler* = proc(req: Request): Future[void]{.gcsafe.}
 
 func newHttpHeaders(contentType: ContentType): HttpHeaders =

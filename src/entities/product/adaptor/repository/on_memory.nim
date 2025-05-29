@@ -27,11 +27,11 @@ func newProductRepositoryOnMemory*(): ProductRepositoryOnMemory =
   ProductRepositoryOnMemory(products: product)
 
 
-proc list(self: ProductRepositoryOnMemory): seq[ProductReadModel] = 
+proc list(self: ProductRepositoryOnMemory): seq[ProductReadModel] =
   self.products
 
 
-proc save(self: ProductRepositoryOnMemory, model: ProductWriteModel): void = 
+proc save(self: ProductRepositoryOnMemory, model: ProductWriteModel): void =
   let id = self.products.len + 1
   let product = ProductReadModel(
     id: id,

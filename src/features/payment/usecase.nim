@@ -13,9 +13,9 @@
 ##    - submitPayment
 ##
 type
-  
+
   Cart = ref object
-  
+
   DeliveryPoint = ref object
     address: string
 

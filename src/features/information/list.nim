@@ -5,21 +5,22 @@ import src/shared/handler
 import src/shared/port/http
 
 
-type 
-  InformationReadModel* = ref object 
+type
+  InformationReadModel* = ref object
     id*: int64
-    content*: string  
- 
-  InformationListCommand* = 
-    ((){.gcsafe} -> seq[InformationReadModel])
+    content*: string
 
-  InformationListUsecase* = 
-    ((){.gcsafe} -> seq[InformationReadModel])
+  InformationListCommand* =
+    ((){.gcsafe.} -> seq[InformationReadModel])
+
+  InformationListUsecase* =
+    ((){.gcsafe.} -> seq[InformationReadModel])
 
   InformationListController* = Handler
 
 
-func newInformationReadModel*(id: int64, content: string): InformationReadModel =
+func newInformationReadModel*(id: int64,
+    content: string): InformationReadModel =
   InformationReadModel(
     id: id,
     content: content,

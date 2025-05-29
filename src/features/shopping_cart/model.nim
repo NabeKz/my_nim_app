@@ -1,6 +1,6 @@
 import std/sugar
 
-type ProductItem* = ref object 
+type ProductItem* = ref object
   productId*: int64
   amount*: uint16
 
@@ -8,12 +8,12 @@ type ProductItem* = ref object
 func productId*(self: ProductItem): int64 = self.productId
 func amount*(self: ProductItem): uint16 = self.amount
 
-type 
+type
   ShoppingCart* = ref object of RootObj
     id*: int64
     productItems: seq[ProductItem]
- 
-  ShoppingCartFetchEvent* = ((){.gcsafe} -> ShoppingCart)
+
+  ShoppingCartFetchEvent* = ((){.gcsafe.} -> ShoppingCart)
   ShoppingCartAddEvent* = ((ProductItem){.gcsafe.} -> void)
 
 
@@ -23,21 +23,21 @@ func newProductItem*(productId: int64, amount: uint16): ProductItem =
     amount: amount,
   )
 
-func newShoppingCart*(): ShoppingCart = 
+func newShoppingCart*(): ShoppingCart =
   ShoppingCart(productItems: @[])
 
 
-func add*(self: ShoppingCart, item: ProductItem): ShoppingCart = 
+func add*(self: ShoppingCart, item: ProductItem): ShoppingCart =
   ShoppingCart(
     productItems: self.productItems & item
   )
 
-func add*(self: ShoppingCart, items: seq[ProductItem]): ShoppingCart = 
+func add*(self: ShoppingCart, items: seq[ProductItem]): ShoppingCart =
   ShoppingCart(
     productItems: self.productItems & items
   )
 
-func getItems*(self: ShoppingCart): seq[ProductItem] = 
+func getItems*(self: ShoppingCart): seq[ProductItem] =
   self.productItems
 
 

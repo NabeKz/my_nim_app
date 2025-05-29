@@ -53,7 +53,7 @@ iterator select*(self: DbConn, t: ReadModel, limit: uint64 = 100): JsonNode =
     debugEcho "sql is: ", query
   for row in self.rows(sql query):
     let table = zip(fields.keys, row).toTable()
-    yield (% table)
+    yield ( % table)
 
 
 proc take*(self: DbConn, t: ReadModel): JsonNode =
@@ -111,7 +111,7 @@ when isMainModule:
     let db = dbConn(getCurrentDir() & "/db.sqlite3")
     execDDL(db)
     return
-  
+
   dbOnMemory db:
     for jsonNode in db.select(UserRecord()):
       echo jsonNode

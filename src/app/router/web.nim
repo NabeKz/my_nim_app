@@ -11,7 +11,7 @@ import src/pages/home
 import src/pages/books
 import ./cookies
 
-const headers = { 
+const headers = {
   "Content-Type": "text/html charset=utf8;"
 }
 
@@ -30,7 +30,8 @@ proc resp(req: Request, content: string): Future[void] =
 proc match(req: Request, path: string, reqMethod: HttpMethod): bool{.gcsafe.} =
   req.url.path.match(re path & "$") and req.reqMethod == reqMethod
 
-proc redirect(req: Request, path: string, headers: seq[tuple[key: string, value: string]]): Future[void] =
+proc redirect(req: Request, path: string, headers: seq[tuple[key: string,
+    value: string]]): Future[void] =
   req.respond(Http303, "", @[
     ("Location", path),
   ]
@@ -46,9 +47,9 @@ proc success(req: Request, path: string): Future[void] =
 
 proc failure(req: Request): Future[void] =
   let cookie = cookies
-      .deleteCookie("success")
-      .setCookie("error", "Something went wrong", req.url.path)
-      .string
+    .deleteCookie("success")
+    .setCookie("error", "Something went wrong", req.url.path)
+    .string
 
   req.redirect(req.url.path, @[
     ("Set-Cookie", cookie)
@@ -65,7 +66,7 @@ proc asideNav(path: string): string =
     )
   )
 
-proc layout(body: string): string =  
+proc layout(body: string): string =
   htmlgen.head(
     htmlgen.style(
       "ul, li { margin: 0 }",
@@ -82,23 +83,23 @@ proc layout(body: string): string =
           asideNav("/siginin"),
           asideNav("/books"),
           asideNav("/books/create")
-        ),
       ),
+    ),
       body
     )
   )
 
 proc getCookie(req: Request): seq[string] =
   req.headers.getOrDefault("cookie").toString().split("; ")
-  
-proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
+
+proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
   try:
     if req.match("/", HttpGet):
       await resp(req, layout home.index())
 
     if req.match("/books", HttpGet):
       await resp(req, layout books.index(ctx.books))
-    
+
     if req.match("/books/create", HttpGet):
       let messages = req.getCookie()
       let body = books.create(messages)
@@ -109,7 +110,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
         let body = books.validate(req.body)
         books.save(ctx.books, body)
         await req.success("/books")
-      
+
     if req.match("/books/delete/\\d+", HttpDelete):
       suspend:
         let body = books.validate(req.body)

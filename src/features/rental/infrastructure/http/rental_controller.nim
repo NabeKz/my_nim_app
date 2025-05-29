@@ -21,16 +21,16 @@ proc handleRequest*(self: RentalController, body: string): (HttpCode, string) =
     (Http400, "invalid")
   of ExtensionApplyResult.Reject:
     (Http409, "ng")
-  
-  
+
+
 proc newRentalController*(usecase: ExtensionUsecase): RentalController =
   RentalController(usecase: usecase)
 
 
 when isMainModule:
   import std/unittest
-  
-  
+
+
   let controller = newRentalController(
     usecase = newExtensionUsecase()
   )

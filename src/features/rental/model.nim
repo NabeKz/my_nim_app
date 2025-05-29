@@ -14,15 +14,15 @@ type
     loanBegin*: string
 
   RentalRepository* = ref object of RootObj
-  
+
   ExtensionUsecase* = ref object
     repository: RentalRepository
 
 
-method find*(self: RentalRepository): CurrentState{.base.} = 
+method find*(self: RentalRepository): CurrentState{.base.} =
   discard
 
-proc parseDate(value: string): Option[DateTime] = 
+proc parseDate(value: string): Option[DateTime] =
   try:
     let dt = parse(value, "yyyy-MM-dd")
     some(dt)
@@ -30,7 +30,7 @@ proc parseDate(value: string): Option[DateTime] =
     none(DateTime)
 
 
-proc newCurrentState*(value: string): Option[CurrentState] = 
+proc newCurrentState*(value: string): Option[CurrentState] =
   let dt = parseDate(value)
   if dt.isNone():
     none(CurrentState)
@@ -50,16 +50,16 @@ proc callback(dt: DateTime): ExtensionApplyResult =
     ExtensionApplyResult.Reject
 
 
-proc invoke*(self: ExtensionUsecase, dto: CurrentStateInputDto): ExtensionApplyResult = 
+proc invoke*(self: ExtensionUsecase, dto: CurrentStateInputDto): ExtensionApplyResult =
   let dt = parseDate(dto.loanBegin)
   if dt.isNone():
     ExtensionApplyResult.InvalidDate
   else:
     dt.map(callback).get()
 
-  
 
-proc newExtensionUsecase*(repository: RentalRepository): ExtensionUsecase = 
+
+proc newExtensionUsecase*(repository: RentalRepository): ExtensionUsecase =
   ExtensionUsecase(repository: repository)
 
 

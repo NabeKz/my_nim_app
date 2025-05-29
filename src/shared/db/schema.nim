@@ -3,7 +3,7 @@ import std/strutils
 import std/strformat
 import std/sequtils
 
-type 
+type
   ColumnType = enum
     INT = "int"
     STRING = "string"
@@ -11,7 +11,7 @@ type
   Column = ref object
     name: string
     columnType: ColumnType
-  
+
   Table = ref object
     name: string
     columns: seq[Column]
@@ -20,24 +20,24 @@ proc to(columnType: string): ColumnType =
   case columnType.toUpper()
   of "TEXT": STRING
   of "INTEGER": INT
-  else: 
+  else:
     raise newException(ValueError, columnType & " is invalid")
 
 
-proc createColumn(line: string): Column = 
+proc createColumn(line: string): Column =
   let splited = line.split(" ", maxsplit = 2)
   Column(
     name: splited[0],
     columnType: to(splited[1])
   )
 
-func `$`(column: Column): string = 
+func `$`(column: Column): string =
   column.name & ": " & $column.columnType
 
 proc fetchTables(filename: string): seq[string] =
   let command = ["sqlite3", filename, ".tables"].join(" ")
   let (output, _) = execCmdEx(command)
-  
+
   output
     .split("  ")
     .filterIt(it != " \n")
