@@ -28,7 +28,10 @@ proc resp(req: Request, content: string): Future[void] =
   resp(req, Http200, content)
 
 proc match(req: Request, path: string, reqMethod: HttpMethod): bool{.gcsafe.} =
-  req.url.path.match(re path & "$") and req.reqMethod == reqMethod
+  if req.reqMethod == HttpPost and reqMethod != HttpPost:
+    req.url.path.match(re path & "$") and req.body == "_method=" & $reqMethod
+  else:
+    req.url.path.match(re path & "$") and req.reqMethod == reqMethod
 
 proc redirect(req: Request, path: string, headers: seq[tuple[key: string,
     value: string]]): Future[void] =
@@ -92,6 +95,7 @@ proc layout(body: string): string =
 proc getCookie(req: Request): seq[string] =
   req.headers.getOrDefault("cookie").toString().split("; ")
 
+
 proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
   try:
     if req.match("/", HttpGet):
@@ -112,9 +116,9 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
         await req.success("/books")
 
     if req.match("/books/delete/\\d+", HttpDelete):
+      let id = req.url.path.split("/")[^1]
       suspend:
-        let body = books.validate(req.body)
-        books.save(ctx.books, body)
+        books.delete(ctx.books, id)
         await req.success("/books")
 
     await req.respond(Http404, $Http404)

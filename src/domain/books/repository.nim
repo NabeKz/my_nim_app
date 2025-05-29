@@ -6,12 +6,19 @@ type BookRepositoryOnMemory* = ref object of BookRepository
 
 proc newBooksRepositoryOnMemory*(): BookRepository =
   var books = @[
-    newBook(title = "hoge"),
-    newBook(title = "fuga")
+    newBook(id = BookId "1", title = "hoge"),
+    newBook(id = BookId "2", title = "fuga")
   ]
+  var id = books.len + 1
 
   newBookRepository(
     list = proc(): seq[Book] = books,
-    save = proc(model: Book): void = books.add(model),
-    delete = proc(id: BookId): void = books = books.filterIt(it.id != id)
+    delete = proc(id: BookId): void = books = books.filterIt(it.id != id),
+    save = proc(model: BookWriteModel): void = 
+      let book = newBook(
+        id = BookId $id,
+        title = model.title
+      )
+      books.add(book)
+      id.inc()
   )
