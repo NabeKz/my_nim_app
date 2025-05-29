@@ -28,7 +28,7 @@ proc resp(req: Request, content: string): Future[void] =
   resp(req, Http200, content)
 
 proc match(req: Request, path: string, reqMethod: HttpMethod): bool{.gcsafe.} =
-  req.url.path.match(re path) and req.reqMethod == reqMethod
+  req.url.path.match(re path & "$") and req.reqMethod == reqMethod
 
 proc redirect(req: Request, path: string, headers: seq[tuple[key: string, value: string]]): Future[void] =
   req.respond(Http303, "", @[
@@ -110,7 +110,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.}  =
         books.save(ctx.books, body)
         await req.success("/books")
       
-    if req.match("/books/delete/\\d+$", HttpDelete):
+    if req.match("/books/delete/\\d+", HttpDelete):
       suspend:
         let body = books.validate(req.body)
         books.save(ctx.books, body)
