@@ -29,7 +29,7 @@ proc resp(req: Request, content: string): Future[void] =
 
 proc match(req: Request, path: string, reqMethod: HttpMethod): bool{.gcsafe.} =
   if req.reqMethod == HttpPost and reqMethod != HttpPost:
-    req.url.path.match(re path & "$") and req.body == "_method=" & $reqMethod
+    req.url.path.match(re path & "$") and req.url.query == "_method=" & $reqMethod
   else:
     req.url.path.match(re path & "$") and req.reqMethod == reqMethod
 

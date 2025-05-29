@@ -9,13 +9,8 @@ func toLi(items: seq[Book]): string =
     result.add htmlgen.li(item.title)
     result.add htmlgen.form(
       `method` = "POST",
-      action = "/books/delete/" & item.id.string,
+      action = "/books/delete/" & item.id.string & "?_method=DELETE",
       class = "delete",
-      input(
-        type="hidden",
-        name="_method",
-        value="DELETE"
-      ),
       button(
         type = "submit",
         "delete"
