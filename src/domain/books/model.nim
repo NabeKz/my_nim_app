@@ -11,11 +11,13 @@ type
 
   BookListCommand = ((){.gcsafe.} -> seq[Book])
   BookSaveCommand = ((BookWriteModel){.gcsafe.} -> void)
+  BookUpdateCommand = (Book{.gcsafe.} -> void)
   BookDeleteCommand = ((BookId){.gcsafe.} -> void)
 
   BookRepository* = ref object of RootObj
     list: BookListCommand
     save: BookSaveCommand
+    update: BookUpdateCommand
     delete: BookDeleteCommand
 
 func newBook*(id: BookId, title: string): Book{.raises: [ValueError].} =
@@ -62,6 +64,9 @@ proc list*(self: BookRepository): seq[Book] =
 
 proc save*(self: BookRepository, model: BookWriteModel): void =
   self.save(model)
+
+proc update*(self: BookRepository, model: Book): void =
+  self.update(model)
 
 proc delete*(self: BookRepository, id: BookId): void =
   self.delete(id)

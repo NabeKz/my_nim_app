@@ -30,5 +30,8 @@ proc validate*(body: string): CreateParams{.raises: [ValidateError].} =
 proc save*(repository: BookRepository, params: CreateParams): void =
   repository.save newBook(params.title)
 
+proc update*(repository: BookRepository, model: Book): void =
+  repository.update model
+
 proc delete*(repository: BookRepository, id: string): void =
   repository.delete id.BookId

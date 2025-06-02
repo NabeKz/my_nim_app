@@ -115,6 +115,12 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
         books.save(ctx.books, body)
         await req.success("/books")
 
+    if req.match("/books/update/\\d+", HttpPut):
+      let id = req.url.path.split("/")[^1]
+      suspend:
+        books.delete(ctx.books, id)
+        await req.success("/books")
+
     if req.match("/books/delete/\\d+", HttpDelete):
       let id = req.url.path.split("/")[^1]
       suspend:
