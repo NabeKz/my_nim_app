@@ -12,11 +12,13 @@ type
   BookListCommand = ((){.gcsafe.} -> seq[Book])
   BookSaveCommand = ((BookWriteModel){.gcsafe.} -> void)
   BookUpdateCommand = (Book{.gcsafe.} -> void)
+  BookFindCommand = ((BookId){.gcsafe.} -> Book)
   BookDeleteCommand = ((BookId){.gcsafe.} -> void)
 
   BookRepository* = ref object of RootObj
     list: BookListCommand
     save: BookSaveCommand
+    find: BookFindCommand
     update: BookUpdateCommand
     delete: BookDeleteCommand
 
@@ -64,6 +66,9 @@ proc list*(self: BookRepository): seq[Book] =
 
 proc save*(self: BookRepository, model: BookWriteModel): void =
   self.save(model)
+
+proc find*(self: BookRepository, id: BookId): Book =
+  self.find(id)
 
 proc update*(self: BookRepository, model: Book): void =
   self.update(model)

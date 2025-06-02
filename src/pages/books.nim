@@ -4,10 +4,12 @@ import std/tables
 import src/domain/books/model
 import src/pages/books/list
 import src/pages/books/create as c
+import src/pages/books/update as u
 import src/pages/shared
 
 const index* = list.get
 const create* = c.get
+const edit* = u.index
 
 
 type CreateParams = ref object
@@ -29,6 +31,10 @@ proc validate*(body: string): CreateParams{.raises: [ValidateError].} =
 
 proc save*(repository: BookRepository, params: CreateParams): void =
   repository.save newBook(params.title)
+
+proc find*(repository: BookRepository, id: string): Book =
+  let bookId = BookId(id)
+  repository.find bookId
 
 proc update*(repository: BookRepository, model: Book): void =
   repository.update model
