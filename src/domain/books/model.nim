@@ -44,11 +44,13 @@ func title*(self: Book): string =
 func newBookRepository*(
   list: BookListCommand,
   save: BookSaveCommand,
+  update: BookUpdateCommand,
   delete: BookDeleteCommand
 ): BookRepository =
   BookRepository(
     list: list,
     save: save,
+    update: update,
     delete: delete
   )
 

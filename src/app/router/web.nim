@@ -95,6 +95,9 @@ proc layout(body: string): string =
 proc getCookie(req: Request): seq[string] =
   req.headers.getOrDefault("cookie").toString().split("; ")
 
+proc tail(self: Request): string =
+  self.url.path.split("/")[^1]
+
 
 proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
   try:
@@ -121,11 +124,13 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
         let book = books.find(ctx.books, id)
         await req.respond(Http200, $Http200)
 
-    # if req.match("/books/update/\\d+", HttpPut):
-    #   let id = req.url.path.split("/")[^1]
-    #   suspend:
-    #     books.update(ctx.books, id)
-    #     await req.success("/books")
+    if req.match("/books/update/\\d+", HttpPut):
+      let id = req.url.path.split("/")[^1]
+      let form = req.body
+      suspend:
+        let book = books.find(ctx.books, id)
+        books.update(ctx.books, book)
+        await req.success("/books")
 
     if req.match("/books/delete/\\d+", HttpDelete):
       let id = req.url.path.split("/")[^1]
