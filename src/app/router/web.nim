@@ -95,7 +95,7 @@ proc layout(body: string): string =
 proc getCookie(req: Request): seq[string] =
   req.headers.getOrDefault("cookie").toString().split("; ")
 
-proc tail(self: Request): string =
+method lastPath(self: Request): string =
   self.url.path.split("/")[^1]
 
 
@@ -119,13 +119,13 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
         await req.success("/books")
 
     if req.match("/books/update/\\d+", HttpGet):
-      let id = req.url.path.split("/")[^1]
+      let id = req.lastPath()
       suspend:
         let book = books.find(ctx.books, id)
         await req.respond(Http200, $Http200)
 
     if req.match("/books/update/\\d+", HttpPut):
-      let id = req.url.path.split("/")[^1]
+      let id = req.lastPath()
       let form = req.body
       suspend:
         let book = books.find(ctx.books, id)
@@ -133,7 +133,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
         await req.success("/books")
 
     if req.match("/books/delete/\\d+", HttpDelete):
-      let id = req.url.path.split("/")[^1]
+      let id = req.lastPath()
       suspend:
         books.delete(ctx.books, id)
         await req.success("/books")
