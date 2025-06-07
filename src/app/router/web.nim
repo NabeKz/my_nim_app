@@ -95,7 +95,7 @@ proc layout(body: string): string =
 proc getCookie(req: Request): seq[string] =
   req.headers.getOrDefault("cookie").toString().split("; ")
 
-method lastPath(self: Request): string =
+proc lastPath(self: Request): string =
   self.url.path.split("/")[^1]
 
 
