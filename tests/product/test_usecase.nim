@@ -21,5 +21,5 @@ block valid:
 
   if (errors.len > 0):
     raise newException(ValueError, $errors)
-  
+
   check errors.len == 0

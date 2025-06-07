@@ -17,3 +17,5 @@ nimble.develop
 nimble.paths
 *.out
 outputExpected.txt
+
+improvements.md

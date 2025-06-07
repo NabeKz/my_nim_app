@@ -1,0 +1,36 @@
+# Pre-commit hooks configuration
+# Install with: pip install pre-commit && pre-commit install
+
+repos:
+  - repo: local
+    hooks:
+      - id: nim-check
+        name: Nim Static Analysis
+        entry: nimble check
+        language: system
+        files: '\.nim$'
+        pass_filenames: false
+        
+      - id: nim-format
+        name: Nim Format
+        entry: nimble format
+        language: system
+        files: '\.nim$'
+        pass_filenames: false
+        
+      - id: nim-test
+        name: Nim Tests
+        entry: nimble ut
+        language: system
+        files: '\.nim$'
+        pass_filenames: false
+        stages: [push]
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict

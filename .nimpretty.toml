@@ -1,0 +1,23 @@
+# Nimpretty configuration file
+# See: https://nim-lang.org/docs/nimpretty.html
+
+# Maximum line length
+maxLineLen = 100
+
+# Indentation
+indWidth = 2
+
+# Keep blank lines between procedures/types
+keepBlankLines = true
+
+# Format case statements
+formatCaseStatements = true
+
+# Sort imports
+sortImports = true
+
+# Format comments
+formatComments = true
+
+# Remove trailing whitespace
+removeTrailingWhitespace = true

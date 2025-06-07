@@ -14,11 +14,11 @@ proc newBooksRepositoryOnMemory*(): BookRepository =
   newBookRepository(
     list = proc(): seq[Book] = books,
     delete = proc(id: BookId): void = books = books.filterIt(it.id != id),
-    save = proc(model: BookWriteModel): void = 
-      let book = newBook(
-        id = BookId $id,
-        title = model.title
-      )
-      books.add(book)
-      id.inc()
+    save = proc(model: BookWriteModel): void =
+    let book = newBook(
+      id = BookId $id,
+      title = model.title
+    )
+    books.add(book)
+    id.inc()
   )

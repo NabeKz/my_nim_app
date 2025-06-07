@@ -24,7 +24,12 @@ task sweep, "cleanup binary":
 
 
 task format, "format":
-  exec """nimpretty src/*"""
+  for nimFile in walkDirRec("src"):
+    if nimFile.endsWith(".nim"):
+      exec "nimpretty --maxLineLen:100 --indent:2 " & nimFile
+  for nimFile in walkDirRec("tests"):
+    if nimFile.endsWith(".nim"):
+      exec "nimpretty --maxLineLen:100 --indent:2 " & nimFile
 
 task db_init, "initialize database":
   rmFile "db.sqlite3"
@@ -38,3 +43,19 @@ task db_schema, "parse db schema":
 
 task ut, "run unit test":
   exec """testament p tests/**/*.nim"""
+
+task check, "run static analysis":
+  exec """nim check --hints:off --warnings:off src/app.nim"""
+  for nimFile in walkDirRec("src"):
+    if nimFile.endsWith(".nim"):
+      exec "nim check --hints:off --warnings:off " & nimFile
+
+task lint, "run linting (check + format)":
+  exec "nimble check"
+  exec "nimble format"
+
+task strictcheck, "run strict static analysis with all warnings":
+  exec """nim check --warnings:on --hints:on src/app.nim"""
+  for nimFile in walkDirRec("src"):
+    if nimFile.endsWith(".nim"):
+      exec "nim check --warnings:on --hints:on " & nimFile

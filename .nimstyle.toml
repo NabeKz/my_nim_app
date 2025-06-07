@@ -1,0 +1,64 @@
+# Nim Style Guide Configuration
+# Based on official Nim style guide and best practices
+
+[naming]
+# Use camelCase for variables, functions, and methods
+variables = "camelCase"
+functions = "camelCase" 
+methods = "camelCase"
+
+# Use PascalCase for types, enums, and constants
+types = "PascalCase"
+enums = "PascalCase"
+constants = "PascalCase"
+
+# Use snake_case for modules and file names
+modules = "snake_case"
+files = "snake_case"
+
+[formatting]
+# Indentation using 2 spaces
+indent_size = 2
+indent_type = "spaces"
+
+# Line length
+max_line_length = 100
+
+# Blank lines
+max_blank_lines = 2
+blank_line_after_imports = true
+blank_line_before_class = true
+blank_line_before_proc = true
+
+# Spacing
+space_around_operators = true
+space_after_comma = true
+space_before_colon = false
+space_after_colon = true
+
+[code_style]
+# Use result variable instead of return
+prefer_result = true
+
+# Use when instead of case for single values
+prefer_when = true
+
+# Import organization
+sort_imports = true
+group_imports = true
+
+# Comment style
+comment_style = "##"  # Use ## for documentation comments
+
+[patterns]
+# Error handling
+use_result_type = true  # Prefer Result[T, E] over exceptions
+validate_inputs = true  # Always validate function inputs
+
+# Memory management
+avoid_ref_cycles = true  # Avoid reference cycles
+prefer_value_semantics = true  # Prefer value types over references
+
+# Concurrency
+use_async_await = true  # Use async/await pattern
+avoid_shared_state = true  # Minimize shared mutable state

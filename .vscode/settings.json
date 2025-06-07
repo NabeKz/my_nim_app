@@ -1,7 +1,11 @@
 {
-  "nim.formatOnSave": true,
   // "nim.buildOnSave": true,
   "nim.lsp.path": "/home/kazuya/.nimble/bin/nimlangserver",
   "nim.logNimsuggest": true,
   "nim.nimprettyIndent": 2,
+  "editor.formatOnSave": true,
+  "nim.formatOnSave": true,
+  "files.associations": {
+    "*.nim": "nim"
+  }
 }
