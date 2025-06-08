@@ -1,6 +1,6 @@
 import std/htmlgen
 
-import src/domain/books/model
+import src/features/books/model
 
 const header = "books"
 

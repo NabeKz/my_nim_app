@@ -1,4 +1,4 @@
-import src/domain/books/model
+import src/features/books/model
 
 type
   Context* = ref object

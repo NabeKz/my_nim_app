@@ -1,8 +1,7 @@
 import app/router/context
-import src/domain/books/repository
+import src/features/books/repository
 
 proc newContext*(): Context =
   Context(
-    books:
-    newBooksRepositoryOnMemory()
+    books: newBooksRepositoryOnMemory()
   )

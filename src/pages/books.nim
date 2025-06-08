@@ -1,7 +1,7 @@
 import std/strutils
 import std/tables
 
-import src/domain/books/model
+import src/features/books/model
 import src/pages/books/list
 import src/pages/books/create as c
 import src/pages/books/update as u
