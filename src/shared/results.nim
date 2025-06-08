@@ -17,7 +17,8 @@ proc err*[T, E](error: E): Result[T, E] =
 
 
 proc map*[T, E, U](r: Result[T, E], f: T -> U): Result[U, E] =
-  if r.isOk: 
-    f(r.value)
-  else:
-    r
+  case r.isOk:
+  of true:
+    ok[U, E](f(r.value))
+  of false:
+    err[U, E](r.error)
