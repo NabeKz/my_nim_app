@@ -9,7 +9,7 @@ type
 
 proc newContext*(): Context =
   let repository = newBooksRepositoryOnMemory()
-  let onMemory = workflow.onMemory()
+  let onMemory = workflow.createInMemoryRepository()
   Context(
     books: newBooksRepositoryOnMemory(),
     getBooks: onMemory.getBooks

@@ -20,11 +20,11 @@ func toLi(items: seq[Book]): string =
 
 
 proc query*(query: Table[string, string], getBooks: GetBooks): string =
-  let books = getBooks()
+  # let books = @[]
 
   htmlgen.div(
     "book",
-    htmlgen.ul(
-      books.toLi()
-    )
+    # htmlgen.ul(
+    #   books.toLi()
+    # )
   )

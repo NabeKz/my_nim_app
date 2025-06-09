@@ -1,6 +1,5 @@
 import std/sugar
 import std/sequtils
-import std/options
 import ./model
 
 # 依存関数の型定義
@@ -29,8 +28,8 @@ proc getBookOnMemory(books: seq[Book]): GetBook =
 proc getBooksOnMemory(books: seq[Book]): GetBooks =
   () => books
 
-proc createBookOnMemory(books: var seq[Book]): CreateBook =
-  (dto: BookWriteModel) => books.add dto.to(Book)
+proc createBookOnMemory(books: ref seq[Book]): CreateBook =
+  (dto: BookWriteModel) => books[].add dto.to(Book)
 
 
 # # 検索機能（フィルタリング付き）
@@ -53,9 +52,8 @@ proc createInMemoryRepository*(): Repository =
     newBook(id = BookId "2", title = "To Kill a Mockingbird"),
     newBook(id = BookId "3", title = "1984")
   ]
-  
   Repository(
     getBook: getBookOnMemory(books),
     getBooks: getBooksOnMemory(books),
-    createBook: createBookOnMemory(books),
+    createBook: createBookOnMemory(new seq[Book]),
   )

@@ -8,14 +8,14 @@ type
   App = ref object
     server: AsyncHttpServer
 
-func newApp(db: DbConn): App =
+func newApp(): App =
   App(
     server: newAsyncHttpServer()
   )
 
 proc run(self: App) {.async.} =
-  var db = dbConn("db.sqlite3")
-  defer: db.close()
+  # var db = dbConn("db.sqlite3")
+  # defer: db.close()
 
   self.server.listen(Port 5000)
   echo "server is running at http://localhost:5000"
@@ -31,6 +31,6 @@ proc run(self: App) {.async.} =
       await sleepAsync(500)
 
 
-let db = dbConn("db.sqlite3")
-let app = newApp(db)
+# let db = dbConn("db.sqlite3")
+let app = newApp()
 waitFor app.run()
