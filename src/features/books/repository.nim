@@ -29,7 +29,7 @@ proc update(
 
 proc newBooksRepositoryOnMemory*(): BookRepository =
   var books = @[
-    newBook(id = BookId "1", title = "hoge"), 
+    newBook(id = BookId "1", title = "hoge"),
     newBook(id = BookId "2", title = "fuga")
   ]
 

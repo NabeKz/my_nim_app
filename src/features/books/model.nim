@@ -14,7 +14,7 @@ type
   BookUpdateCommand* = (Book{.gcsafe.} -> void)
   BookFindCommand* = ((BookId){.gcsafe.} -> Book)
   BookDeleteCommand* = ((BookId){.gcsafe.} -> void)
-  
+
   BookError* = enum
     BookNotFound = "Book not found"
     InvalidQuery = "Invalid query parameters"

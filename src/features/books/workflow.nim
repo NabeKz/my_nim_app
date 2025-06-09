@@ -28,7 +28,7 @@ proc run(query: BookListQuery): BookListResult =
     totalCount: 0
   )
 
-proc execute*(workflow: GetBooksWorkflow, query: BookListQuery): Result[BookListResult, BookError] = 
+proc execute*(workflow: GetBooksWorkflow, query: BookListQuery): Result[BookListResult, BookError] =
   let validatedQuery = validateQuery(query)
   map[BookListQuery, BookError, BookListResult](
     validatedQuery,
