@@ -2,6 +2,8 @@ import std/options
 import std/strutils
 import std/sugar
 
+import src/shared/uuid
+
 type
   BookId* = distinct string
   Book* = ref object
@@ -71,3 +73,6 @@ func `==`*(self: BookId, other: BookId): bool =
 
 func `!=`*(self: BookId, other: BookId): bool =
   not (self == other)
+
+proc to*(self: BookWriteModel, _: type Book): Book =
+  Book(id: BookId generateUuid(), title: self.title)

@@ -18,7 +18,7 @@ func toLi(items: seq[Book]): string =
     )
 
 
-proc index*(repository: BookRepository): string =
+proc index*(getBook: GetBook): string =
   htmlgen.div(
     "book",
   )

@@ -25,23 +25,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a Nim web application using a layered architecture with dependency injection:
 
 ### Core Structure
+
 - **Entry point**: `src/app.nim` - HTTP server setup and main application loop
 - **Routing**: `src/app/router/web.nim` - Main web router with pattern matching and HTML responses
 - **Context**: `src/context.nim` - Application context and dependency wiring
 - **Dependencies**: `src/dependency.nim` - Dependency injection container
 
 ### Architecture Patterns
+
 - **Clean Architecture**: Entities, use cases, adapters, and infrastructure layers
 - **Repository Pattern**: Abstract data access with on-memory and RDB implementations
 - **Feature-based Organization**: Code organized by business features (user, rental, shopping_cart, etc.)
 
 ### Key Components
+
 - **Database**: SQLite with custom ORM-like abstractions in `src/shared/db/conn.nim`
 - **Migrations**: SQL files in `src/shared/db/ddl/` executed automatically during setup
 - **HTML Generation**: Server-side rendered HTML using `htmlgen` module
 - **Request Handling**: Custom routing with regex pattern matching and HTTP method overrides
 
 ### Testing
+
 - Uses Testament test framework
 - Test files located in `tests/` directory
 - Run with `nimble ut` command
@@ -51,17 +55,20 @@ The application follows a domain-driven design with clear separation between bus
 ## Code Style Guidelines
 
 ### Naming Conventions
+
 - **Variables/Functions**: camelCase (e.g., `getUserById`, `userName`)
 - **Types/Enums/Constants**: PascalCase (e.g., `UserEntity`, `StatusCode`)
 - **Modules/Files**: snake_case (e.g., `user_service.nim`, `db_conn.nim`)
 
 ### Formatting Rules
+
 - **Indentation**: 2 spaces (no tabs)
 - **Line Length**: Maximum 100 characters
 - **Imports**: Sort and group related imports
 - **Comments**: Use `##` for documentation comments
 
 ### Code Style Files
+
 - `.nimstyle.toml` - Nim-specific style guidelines
 - `.editorconfig` - Editor configuration for consistent formatting
 - `nim.cfg` - Compiler configuration with style checks and warnings
