@@ -21,7 +21,4 @@ func toLi(items: seq[Book]): string =
 proc index*(repository: BookRepository): string =
   htmlgen.div(
     "book",
-    htmlgen.ul(
-      repository.list().toLi()
-    )
   )

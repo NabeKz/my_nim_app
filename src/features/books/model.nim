@@ -1,3 +1,4 @@
+import std/options
 import std/strutils
 import std/sugar
 
@@ -9,11 +10,15 @@ type
   BookWriteModel* = ref object
     title*: string
 
-  BookListCommand* = ((){.gcsafe.} -> seq[Book])
-  BookSaveCommand* = ((BookWriteModel){.gcsafe.} -> void)
-  BookUpdateCommand* = (Book{.gcsafe.} -> void)
-  BookFindCommand* = ((BookId){.gcsafe.} -> Book)
-  BookDeleteCommand* = ((BookId){.gcsafe.} -> void)
+  BookSearchParams* = ref object
+    title*: Option[string]
+    author*: Option[string]
+
+  GetBook* = ((BookId){.gcsafe.} -> Book)
+  GetBooks* = ((){.gcsafe.} -> seq[Book])
+  CreateBook* = ((BookWriteModel){.gcsafe.} -> void)
+  UpdateBook* = (Book{.gcsafe.} -> void)
+  DeleteBook* = ((BookId){.gcsafe.} -> void)
 
   BookError* = enum
     BookNotFound = "Book not found"
@@ -23,11 +28,10 @@ type
 
 
   BookRepository* = ref object of RootObj
-    list*: BookListCommand
-    save*: BookSaveCommand
-    find*: BookFindCommand
-    update*: BookUpdateCommand
-    delete*: BookDeleteCommand
+    find*: GetBook
+    save*: CreateBook
+    update*: UpdateBook
+    delete*: DeleteBook
 
 func newBook*(id: BookId, title: string): Book{.raises: [ValueError].} =
   if title.isEmptyOrWhitespace():
@@ -49,13 +53,11 @@ func title*(self: Book): string =
   self.title
 
 func newBookRepository*(
-  list: BookListCommand,
-  save: BookSaveCommand,
-  update: BookUpdateCommand,
-  delete: BookDeleteCommand
+    save: CreateBook,
+    update: UpdateBook,
+    delete: DeleteBook,
 ): BookRepository =
   BookRepository(
-    list: list,
     save: save,
     update: update,
     delete: delete
@@ -69,18 +71,3 @@ func `==`*(self: BookId, other: BookId): bool =
 
 func `!=`*(self: BookId, other: BookId): bool =
   not (self == other)
-
-proc list*(self: BookRepository): seq[Book] =
-  self.list()
-
-proc save*(self: BookRepository, model: BookWriteModel): void =
-  self.save(model)
-
-proc find*(self: BookRepository, id: BookId): Book =
-  self.find(id)
-
-proc update*(self: BookRepository, model: Book): void =
-  self.update(model)
-
-proc delete*(self: BookRepository, id: BookId): void =
-  self.delete(id)

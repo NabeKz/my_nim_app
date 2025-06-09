@@ -1,4 +1,5 @@
 import std/htmlgen
+import std/tables
 
 import src/features/books/model
 
@@ -18,10 +19,12 @@ func toLi(items: seq[Book]): string =
     )
 
 
-proc get*(repository: BookRepository): string =
+proc query*(query: Table[string, string], getBooks: GetBooks): string =
+  let books = getBooks()
+
   htmlgen.div(
     "book",
     htmlgen.ul(
-      repository.list().toLi()
+      books.toLi()
     )
   )

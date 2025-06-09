@@ -1,11 +1,16 @@
 import src/features/books/model
-
-type
-  BookUsecase* = tuple[
-    repository: model.BookRepository
-  ]
+import src/features/books/repository
+import src/features/books/workflow
 
 type
   Context* = ref object
     books*: model.BookRepository
-    book_usecase: BookUsecase
+    getBooks*: GetBooks
+
+proc newContext*(): Context =
+  let repository = newBooksRepositoryOnMemory()
+  let onMemory = workflow.onMemory()
+  Context(
+    books: newBooksRepositoryOnMemory(),
+    getBooks: onMemory.getBooks
+  )

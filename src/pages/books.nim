@@ -7,7 +7,7 @@ import src/pages/books/create as c
 import src/pages/books/update as u
 import src/pages/shared
 
-const index* = list.get
+const index* = list.query
 const create* = c.get
 const edit* = u.index
 

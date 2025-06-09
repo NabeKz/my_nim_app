@@ -4,6 +4,7 @@ import std/strutils
 import std/htmlgen
 import std/sequtils
 import std/re
+import std/tables
 
 import src/app/router/context
 import src/pages/shared
@@ -98,6 +99,9 @@ proc getCookie(req: Request): seq[string] =
 proc lastPath(self: Request): string =
   self.url.path.split("/")[^1]
 
+proc queryParams(self: Request): Table[string, string] =
+  self.url.query.parseParams()
+
 
 proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
   try:
@@ -105,7 +109,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
       await resp(req, layout home.index())
 
     if req.match("/books", HttpGet):
-      await resp(req, layout books.index(ctx.books))
+      await resp(req, layout books.index(req.queryParams, ctx.getBooks))
 
     if req.match("/books/create", HttpGet):
       let messages = req.getCookie()
