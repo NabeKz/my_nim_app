@@ -62,3 +62,20 @@ template build*(db, controller, usecase, repository: untyped): untyped =
   proc(req: Request): Future[void] =
     let u = usecase.init repository.init(db)
     controller.run(u, req)
+
+
+template findIndexIt*(s, pred: untyped): int =
+  ## Returns the index of the first item in sequence `s` that fulfills the
+  ## predicate `pred`, or -1 if no item is found.
+  ##
+  ## The predicate needs to be an expression using the `it` variable
+  ## for testing, like: `findIndexIt(@[1, 2, 3], it > 2)`.
+  ##
+  ## Based on `filterIt` from sequtils.
+  var result = -1
+  for i in 0..<s.len:
+    let it {.inject.} = s[i]
+    if pred:
+      result = i
+      break
+  result

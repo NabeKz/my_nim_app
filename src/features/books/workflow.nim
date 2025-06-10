@@ -2,7 +2,9 @@ import std/sugar
 import std/sequtils
 import std/json
 import std/options
+
 import ./model
+import src/shared/utils
 
 
 type
@@ -21,7 +23,7 @@ type
     getBook*: GetBook
     getBooks*: GetBooks
     createBook*: CreateBook
-    # updateBook*: UpdateBook
+    updateBook*: UpdateBook
     deleteBook*: DeleteBook
 
 proc to(self: Book, _: type GetBookOutout): GetBookOutout =
@@ -54,6 +56,12 @@ proc getBooksOnMemory(self: OnMemoryStorage): GetBooks =
 
 proc createBookOnMemory(self: OnMemoryStorage): CreateBook =
   (dto: BookWriteModel) => self.books.add dto.to(Book)
+
+proc updateBookOnMemory(self: OnMemoryStorage): UpdateBook =
+  (book: Book) => (
+    let index = self.books.findIndexIt(it.id == book.id)
+    self.books[index] = book
+  )
 
 proc deleteBookOnMemory(self: OnMemoryStorage): DeleteBook =
   (id: BookId) => (
@@ -88,5 +96,6 @@ proc createInMemoryRepository*(): Repository =
     getBook: getBookOnMemory(storage),
     getBooks: getBooksOnMemory(storage),
     createBook: createBookOnMemory(storage),
+    updateBook: updateBookOnMemory(storage),
     deleteBook: deleteBookOnMemory(storage)
   )

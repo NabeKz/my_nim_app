@@ -72,3 +72,20 @@ The application follows a domain-driven design with clear separation between bus
 - `.nimstyle.toml` - Nim-specific style guidelines
 - `.editorconfig` - Editor configuration for consistent formatting
 - `nim.cfg` - Compiler configuration with style checks and warnings
+
+## Important Guidelines for Claude
+
+### Library and API Research
+
+**ALWAYS verify library functions and APIs before providing answers:**
+
+1. **Check source code first**: Use tools to read the actual library source code before suggesting functions or methods
+2. **Verify function existence**: Never assume a function exists based on other languages or general knowledge
+3. **Confirm syntax and usage**: Read the actual implementation to understand correct usage patterns
+4. **Provide accurate examples**: Only show examples that work with the verified API
+
+**Process for answering library-related questions:**
+1. Read the relevant library source file (e.g., `/home/kazuya/.choosenim/toolchains/nim-2.2.4/lib/pure/collections/sequtils.nim`)
+2. Search for the specific function or feature being asked about
+3. Confirm the exact function signature and behavior
+4. Provide accurate code examples based on the actual API
