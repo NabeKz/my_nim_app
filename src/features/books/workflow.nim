@@ -22,7 +22,7 @@ type
     getBooks*: GetBooks
     createBook*: CreateBook
     # updateBook*: UpdateBook
-    # deleteBook*: DeleteBook
+    deleteBook*: DeleteBook
 
 proc to(self: Book, _: type GetBookOutout): GetBookOutout =
   GetBookOutout(id: self.id.string, title: self.title)
@@ -42,14 +42,23 @@ proc build*(_: type GetBooksWorkflow, getBooks: GetBooks): seq[GetBookOutout] =
 
 # repository
 
-proc getBookOnMemory(books: seq[Book]): GetBook =
-  (id: BookId) => books.filter(b => b.id == id)[0]
+type
+  OnMemoryStorage = ref object
+    books*: seq[Book]
 
-proc getBooksOnMemory(books: seq[Book]): GetBooks =
-  () => books
+proc getBookOnMemory(self: OnMemoryStorage): GetBook =
+  (id: BookId) => self.books.filter(b => b.id == id)[0]
 
-proc createBookOnMemory(books: ref seq[Book]): CreateBook =
-  (dto: BookWriteModel) => books[].add dto.to(Book)
+proc getBooksOnMemory(self: OnMemoryStorage): GetBooks =
+  () => self.books
+
+proc createBookOnMemory(self: OnMemoryStorage): CreateBook =
+  (dto: BookWriteModel) => self.books.add dto.to(Book)
+
+proc deleteBookOnMemory(self: OnMemoryStorage): DeleteBook =
+  (id: BookId) => (
+    self.books = self.books.filterIt(it.id != id)
+  )
 
 
 # # 検索機能（フィルタリング付き）
@@ -67,13 +76,17 @@ proc createBookOnMemory(books: ref seq[Book]): CreateBook =
 
 # Repository factory（メモリ実装）
 proc createInMemoryRepository*(): Repository =
-  var books = @[
-    newBook(id = BookId "1", title = "The Great Gatsby"),
-    newBook(id = BookId "2", title = "To Kill a Mockingbird"),
-    newBook(id = BookId "3", title = "1984")
-  ]
+  var storage = OnMemoryStorage(
+    books: @[
+      newBook(id = BookId "1", title = "The Great Gatsby"),
+      newBook(id = BookId "2", title = "To Kill a Mockingbird"),
+      newBook(id = BookId "3", title = "1984")
+    ]
+  )
+  
   Repository(
-    getBook: getBookOnMemory(books),
-    getBooks: getBooksOnMemory(books),
-    createBook: createBookOnMemory(new seq[Book]),
+    getBook: getBookOnMemory(storage),
+    getBooks: getBooksOnMemory(storage),
+    createBook: createBookOnMemory(storage),
+    deleteBook: deleteBookOnMemory(storage)
   )

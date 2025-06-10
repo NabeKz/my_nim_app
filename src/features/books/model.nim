@@ -8,7 +8,7 @@ type
   BookId* = distinct string
   Book* = ref object
     id*: BookId
-    title: string
+    title*: string
   BookWriteModel* = ref object
     title*: string
 
