@@ -1,24 +1,19 @@
 import std/htmlgen
 
-import src/features/books/model
+import src/features/books/workflow
 
 const header = "books"
 
-func toLi(items: seq[Book]): string =
-  for item in items:
-    result.add htmlgen.li(item.title)
-    result.add htmlgen.form(
-      `method` = "POST",
-      action = "/books/delete/" & item.id.string & "?_method=DELETE",
-      class = "delete",
-      button(
-        type = "submit",
-        "delete"
-      )
-    )
 
-
-proc index*(getBook: GetBook): string =
+proc index*(getBook: GetBookWorkflow, id: string): string =
+  let book = getBook(id)
+  
   htmlgen.div(
     "book",
+    htmlgen.span(
+      book.id
+    ),
+    htmlgen.span(
+      book.title
+    )
   )

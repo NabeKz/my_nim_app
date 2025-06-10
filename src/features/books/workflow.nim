@@ -2,6 +2,13 @@ import std/sugar
 import std/sequtils
 import ./model
 
+
+type
+  GetBookOutout* = ref object
+    id*: string
+    title*: string
+
+  GetBookWorkflow* = (string -> GetBookOutout)
 # 依存関数の型定義
 type
   Repository* = object
@@ -11,13 +18,15 @@ type
     # updateBook*: UpdateBook
     # deleteBook*: DeleteBook
 
+proc to(self: Book, _: type GetBookOutout): GetBookOutout =
+  GetBookOutout(id: self.id.string, title: self.title)
+
 # ユースケース関数（純粋関数）
-proc findBookById*(f: GetBook, id: BookId): Book =
-  f(id)
+proc build*(getBook: GetBook): GetBookWorkflow = 
+  (id: string) => getBook(BookId id).to(GetBookOutout)
 
 proc listAllBooks*(f: GetBooks): seq[Book] =
   f()
-
 
 
 # repository
