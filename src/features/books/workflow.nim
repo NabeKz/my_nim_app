@@ -22,7 +22,7 @@ proc to(self: Book, _: type GetBookOutout): GetBookOutout =
   GetBookOutout(id: self.id.string, title: self.title)
 
 # ユースケース関数（純粋関数）
-proc build*(getBook: GetBook): GetBookWorkflow = 
+proc build*(_: type GetBookWorkflow, getBook: GetBook): GetBookWorkflow = 
   (id: string) => getBook(BookId id).to(GetBookOutout)
 
 proc listAllBooks*(f: GetBooks): seq[Book] =

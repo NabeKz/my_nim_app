@@ -13,6 +13,6 @@ proc newContext*(): Context =
   let onMemory = workflow.createInMemoryRepository()
   Context(
     books: newBooksRepositoryOnMemory(),
-    getBook: workflow.build(onMemory.getBook),
+    getBook: GetBookWorkflow.build(onMemory.getBook),
     getBooks: onMemory.getBooks
   )
