@@ -1,5 +1,7 @@
 import std/sugar
 import std/sequtils
+import std/json
+import std/options
 import ./model
 
 
@@ -8,7 +10,11 @@ type
     id*: string
     title*: string
 
+  QueryParams* = ref object
+    title*: Option[string]
+
   GetBookWorkflow* = (string -> GetBookOutout)
+  GetBooksWorkflow* = (JsonNode -> seq[GetBookOutout])
 # 依存関数の型定義
 type
   Repository* = object
@@ -25,8 +31,13 @@ proc to(self: Book, _: type GetBookOutout): GetBookOutout =
 proc build*(_: type GetBookWorkflow, getBook: GetBook): GetBookWorkflow = 
   (id: string) => getBook(BookId id).to(GetBookOutout)
 
-proc listAllBooks*(f: GetBooks): seq[Book] =
-  f()
+proc build*(_: type GetBooksWorkflow, params: QueryParams, getBooks: GetBooks): seq[GetBookOutout] =
+  getBooks()
+    .filterIt(it.title == title.getOrDefault(""))
+    .mapIt(it.to(GetBookOutout))
+
+proc build*(_: type GetBooksWorkflow, getBooks: GetBooks): seq[GetBookOutout] =
+  (params: QueryParams) => GetBooksWorkflow.build(params, getBooks)
 
 
 # repository
