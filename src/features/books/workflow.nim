@@ -2,21 +2,22 @@ import std/sugar
 import std/sequtils
 import std/json
 import std/options
+import std/tables
 
 import ./model
 import src/shared/utils
 
 
 type
-  GetBookOutout* = ref object
+  GetBookOutput* = ref object
     id*: string
     title*: string
 
   QueryParams* = ref object
     title*: Option[string]
 
-  GetBookWorkflow* = (string -> GetBookOutout)
-  GetBooksWorkflow* = (JsonNode -> seq[GetBookOutout])
+  GetBookWorkflow* = (string -> GetBookOutput)
+  GetBooksWorkflow* = (Table[string, string] -> seq[GetBookOutput])
 # 依存関数の型定義
 type
   Repository* = object
@@ -26,20 +27,19 @@ type
     updateBook*: UpdateBook
     deleteBook*: DeleteBook
 
-proc to(self: Book, _: type GetBookOutout): GetBookOutout =
-  GetBookOutout(id: self.id.string, title: self.title)
+proc to(self: Book, _: type GetBookOutput): GetBookOutput =
+  GetBookOutput(id: self.id.string, title: self.title)
 
 # ユースケース関数（純粋関数）
 proc build*(_: type GetBookWorkflow, getBook: GetBook): GetBookWorkflow = 
-  (id: string) => getBook(BookId id).to(GetBookOutout)
+  (id: string) => getBook(BookId id).to(GetBookOutput)
 
-proc build*(_: type GetBooksWorkflow, params: QueryParams, getBooks: GetBooks): seq[GetBookOutout] =
+proc build*(_: type GetBooksWorkflow, params: Table[string, string], getBooks: GetBooks): seq[GetBookOutput] =
   getBooks()
-    .filterIt(it.title == title.getOrDefault(""))
-    .mapIt(it.to(GetBookOutout))
+    .mapIt(it.to(GetBookOutput))
 
-proc build*(_: type GetBooksWorkflow, getBooks: GetBooks): seq[GetBookOutout] =
-  (params: QueryParams) => GetBooksWorkflow.build(params, getBooks)
+proc build*(self: type GetBooksWorkflow, getBooks: GetBooks): GetBooksWorkflow =
+  (params: Table[string, string]) => self.build(params, getBooks)
 
 
 # repository

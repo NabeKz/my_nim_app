@@ -6,7 +6,7 @@ type
   Context* = ref object
     books*: model.BookRepository
     getBook*: GetBookWorkflow
-    getBooks*: GetBooks
+    getBooks*: GetBooksWorkflow
 
 proc newContext*(): Context =
   let repository = newBooksRepositoryOnMemory()
@@ -14,5 +14,5 @@ proc newContext*(): Context =
   Context(
     books: newBooksRepositoryOnMemory(),
     getBook: GetBookWorkflow.build(onMemory.getBook),
-    getBooks: onMemory.getBooks
+    getBooks: GetBooksWorkflow.build(onMemory.getBooks)
   )

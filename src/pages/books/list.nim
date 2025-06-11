@@ -1,11 +1,11 @@
 import std/htmlgen
 import std/tables
 
-import src/features/books/model
+import src/features/books/workflow
 
 const header = "books"
 
-func toLi(items: seq[Book]): string =
+func toLi(items: seq[GetBookOutput]): string =
   for item in items:
     result.add htmlgen.li(item.title)
     result.add htmlgen.form(
@@ -19,8 +19,8 @@ func toLi(items: seq[Book]): string =
     )
 
 
-proc query*(query: Table[string, string], getBooks: GetBooks): string =
-  let books = getBooks()
+proc query*(query: Table[string, string], getBooks: sink GetBooksWorkflow): string =
+  let books = getBooks query
 
   htmlgen.div(
     "book",
