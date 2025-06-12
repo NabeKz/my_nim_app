@@ -119,7 +119,7 @@ proc router*(ctx: Context, req: Request) {.async, gcsafe.} =
     if req.match("/books/create", HttpPost):
       suspend:
         let body = books.validate(req.body)
-        books.save(ctx.books, body)
+        books.save(ctx.createBook, body)
         await req.success("/books")
 
     if req.match("/books/update/\\d+", HttpGet):

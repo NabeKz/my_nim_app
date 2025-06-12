@@ -2,6 +2,7 @@ import std/strutils
 import std/tables
 
 import src/features/books/model
+import src/features/books/workflow
 import src/pages/books/list
 import src/pages/books/create as c
 import src/pages/books/update as u
@@ -29,8 +30,8 @@ proc validate*(body: string): CreateParams{.raises: [ValidateError].} =
     if model.title.len > 50:
       errors.add("title must be 50 length")
 
-proc save*(repository: BookRepository, params: CreateParams): void =
-  repository.save newBook(params.title)
+proc save*(workflow: CreateBookWorkflow, params: CreateParams): void =
+  workflow newBook(params.title)
 
 proc find*(repository: BookRepository, id: string): Book =
   let bookId = BookId(id)

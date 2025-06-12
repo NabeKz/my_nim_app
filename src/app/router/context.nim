@@ -5,14 +5,16 @@ import src/features/books/workflow
 type
   Context* = ref object
     books*: model.BookRepository
-    getBook*: GetBookWorkflow
     getBooks*: GetBooksWorkflow
+    getBook*: GetBookWorkflow
+    createBook*: CreateBookWorkflow
 
 proc newContext*(): Context =
   let repository = newBooksRepositoryOnMemory()
   let onMemory = workflow.createInMemoryRepository()
   Context(
     books: newBooksRepositoryOnMemory(),
+    getBooks: GetBooksWorkflow.build(onMemory.getBooks),
     getBook: GetBookWorkflow.build(onMemory.getBook),
-    getBooks: GetBooksWorkflow.build(onMemory.getBooks)
+    createBook: CreateBookWorkflow.build(onMemory.createBook)
   )

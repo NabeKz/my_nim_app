@@ -35,6 +35,6 @@ proc newBooksRepositoryOnMemory*(): BookRepository =
 
   newBookRepository(
     delete = proc(id: BookId): void = books = books.filterIt(it.id != id),
-    save = proc(model: BookWriteModel): void = save(books, model),
+    save = proc(model: sink BookWriteModel): void = save(books, model),
     update = proc(model: Book): void = update(books, model)
   )

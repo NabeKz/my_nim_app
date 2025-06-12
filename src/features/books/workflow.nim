@@ -16,8 +16,9 @@ type
   QueryParams* = ref object
     title*: Option[string]
 
-  GetBookWorkflow* = (string -> GetBookOutput)
   GetBooksWorkflow* = (Table[string, string] -> seq[GetBookOutput])
+  GetBookWorkflow* = (string -> GetBookOutput)
+  CreateBookWorkflow* = ((book: sink BookWriteModel){.gcsafe.} -> void)
 # 依存関数の型定義
 type
   Repository* = object
@@ -31,8 +32,6 @@ proc to(self: Book, _: type GetBookOutput): GetBookOutput =
   GetBookOutput(id: self.id.string, title: self.title)
 
 # ユースケース関数（純粋関数）
-proc build*(_: type GetBookWorkflow, getBook: GetBook): GetBookWorkflow = 
-  (id: string) => getBook(BookId id).to(GetBookOutput)
 
 proc build*(_: type GetBooksWorkflow, params: Table[string, string], getBooks: GetBooks): seq[GetBookOutput] =
   getBooks()
@@ -40,6 +39,12 @@ proc build*(_: type GetBooksWorkflow, params: Table[string, string], getBooks: G
 
 proc build*(self: type GetBooksWorkflow, getBooks: GetBooks): GetBooksWorkflow =
   (params: Table[string, string]) => self.build(params, getBooks)
+
+proc build*(_: type GetBookWorkflow, getBook: GetBook): GetBookWorkflow = 
+  (id: string) => getBook(BookId id).to(GetBookOutput)
+
+proc build*(_: type CreateBookWorkflow, createBook: CreateBook): CreateBookWorkflow =
+  (book: sink BookWriteModel) => createBook(book)
 
 
 # repository
@@ -55,7 +60,7 @@ proc getBooksOnMemory(self: OnMemoryStorage): GetBooks =
   () => self.books
 
 proc createBookOnMemory(self: OnMemoryStorage): CreateBook =
-  (dto: BookWriteModel) => self.books.add dto.to(Book)
+  (dto: sink BookWriteModel) => self.books.add dto.to(Book)
 
 proc updateBookOnMemory(self: OnMemoryStorage): UpdateBook =
   (book: Book) => (

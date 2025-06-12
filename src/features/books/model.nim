@@ -18,7 +18,7 @@ type
 
   GetBook* = ((BookId){.gcsafe.} -> Book)
   GetBooks* = ((){.gcsafe.} -> seq[Book])
-  CreateBook* = ((BookWriteModel){.gcsafe.} -> void)
+  CreateBook* = ((book: sink BookWriteModel) {.gcsafe.} -> void)
   UpdateBook* = (Book{.gcsafe.} -> void)
   DeleteBook* = ((BookId){.gcsafe.} -> void)
 
