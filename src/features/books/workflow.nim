@@ -19,6 +19,7 @@ type
   GetBooksWorkflow* = (Table[string, string] -> seq[GetBookOutput])
   GetBookWorkflow* = (string -> GetBookOutput)
   CreateBookWorkflow* = ((book: sink BookWriteModel){.gcsafe.} -> void)
+  DeleteBookWorkflow* = ((id: sink BookId){.gcsafe.} -> void)
 # 依存関数の型定義
 type
   Repository* = object
@@ -43,8 +44,11 @@ proc build*(self: type GetBooksWorkflow, getBooks: GetBooks): GetBooksWorkflow =
 proc build*(_: type GetBookWorkflow, getBook: GetBook): GetBookWorkflow = 
   (id: string) => getBook(BookId id).to(GetBookOutput)
 
-proc build*(_: type CreateBookWorkflow, createBook: CreateBook): CreateBookWorkflow =
+proc build*(_: type CreateBookWorkflow, createBook: sink CreateBook): CreateBookWorkflow =
   (book: sink BookWriteModel) => createBook(book)
+
+proc build*(_: type DeleteBookWorkflow, command: sink DeleteBook): DeleteBookWorkflow =
+  (id: sink BookId) => command(id)
 
 
 # repository

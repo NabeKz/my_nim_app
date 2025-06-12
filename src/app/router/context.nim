@@ -8,6 +8,7 @@ type
     getBooks*: GetBooksWorkflow
     getBook*: GetBookWorkflow
     createBook*: CreateBookWorkflow
+    deleteBook*: DeleteBookWorkflow
 
 proc newContext*(): Context =
   let repository = newBooksRepositoryOnMemory()
@@ -16,5 +17,6 @@ proc newContext*(): Context =
     books: newBooksRepositoryOnMemory(),
     getBooks: GetBooksWorkflow.build(onMemory.getBooks),
     getBook: GetBookWorkflow.build(onMemory.getBook),
-    createBook: CreateBookWorkflow.build(onMemory.createBook)
+    createBook: CreateBookWorkflow.build(onMemory.createBook),
+    deleteBook: DeleteBookWorkflow.build(onMemory.deleteBook),
   )
