@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(nimble:*)"
+      "Bash(nimble:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

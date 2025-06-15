@@ -11,7 +11,7 @@ bin           = @["app"]
 
 # Dependencies
 
-requires "nim >= 2.2.0", "db_connector", "ulid"
+requires "nim >= 2.2.0", "db_connector", "ulid", "norm"
 
 import os
 import std/strutils
@@ -59,3 +59,27 @@ task strictcheck, "run strict static analysis with all warnings":
   for nimFile in walkDirRec("src"):
     if nimFile.endsWith(".nim"):
       exec "nim check --warnings:on --hints:on " & nimFile
+
+task schema_gen, "generate schema and types from database":
+  echo "Generating schema from database..."
+  
+  # データベースからスキーマを取得
+  exec "sqlite3 db.sqlite3 .schema > temp_schema.sql"
+  
+  # スキーマパーサーでNim型を生成
+  exec "nim c -r src/shared/schema_parser.nim > generated_types.nim"
+  
+  # 生成されたファイルを適切な場所に配置
+  exec "mv generated_types.nim src/shared/"
+  
+  # 一時ファイルを削除
+  if fileExists("temp_schema.sql"):
+    rmFile "temp_schema.sql"
+  
+  echo "Schema generation completed!"
+
+task schema_update, "update schema and regenerate types":
+  echo "Updating database schema..."
+  exec "nimble db_init"  # データベースを再初期化
+  exec "nimble schema_gen"  # スキーマを再生成
+  echo "Schema update completed!"
