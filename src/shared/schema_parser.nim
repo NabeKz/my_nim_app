@@ -1,9 +1,8 @@
 import std/strutils
-import std/sequtils
-import std/tables
 import std/tables
 import std/re
-import std/macros
+import std/options
+import std/strformat
 
 # SQLite型からNim型へのマッピング
 type
