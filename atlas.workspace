@@ -7,7 +7,7 @@
     "nodes": [
       {
         "pkg": {
-          "projectName": "cli_tool",
+          "projectName": "my_nim_app",
           "u": "git@github.com:NabeKz/cli-tool.git"
         },
         "versions": [
@@ -16,13 +16,19 @@
             "commit": "",
             "req": 2,
             "v": 0
+          },
+          {
+            "version": "0.1.0",
+            "commit": "ac8a5fb41bfd5009250b9000ef8e74b23179434d",
+            "req": 2,
+            "v": 1
           }
         ],
         "active": true,
         "isRoot": true,
         "isTopLevel": true,
         "status": 0,
-        "activeVersion": 0,
+        "activeVersion": 1,
         "ondisk": "/home/kazuya/cli_tool"
       },
       {
@@ -34,13 +40,7 @@
           {
             "version": "#head",
             "commit": "",
-            "req": 3,
-            "v": 1
-          },
-          {
-            "version": "0.1.0",
-            "commit": "c77cffdfed0b5a74dc10f599206c5a883778af0d",
-            "req": 3,
+            "req": 1,
             "v": 2
           }
         ],
@@ -48,7 +48,7 @@
         "isRoot": true,
         "isTopLevel": false,
         "status": 0,
-        "activeVersion": 1,
+        "activeVersion": 0,
         "ondisk": "/home/kazuya/cli_tool/_deps/db_connector"
       }
     ],
@@ -98,16 +98,6 @@
         "version": "0.1.0",
         "nimVersion": "2.2.0",
         "v": 3,
-        "status": 0,
-        "err": ""
-      },
-      {
-        "deps": [],
-        "hasInstallHooks": false,
-        "srcDir": "src",
-        "version": "0.1.0",
-        "nimVersion": "1.7.3",
-        "v": 4,
         "status": 0,
         "err": ""
       }
