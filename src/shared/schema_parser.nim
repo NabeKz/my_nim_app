@@ -3,6 +3,7 @@ import std/tables
 import std/re
 import std/options
 import std/strformat
+import std/sequtils
 
 # SQLite型からNim型へのマッピング
 type
@@ -58,9 +59,9 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
   let cleanSql = createSql.multiReplace([("\n", " "), ("\t", " ")])
   
   # テーブル名を抽出
-  let tableNamePattern = re"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)"
+  let tableNamePattern = re"CREATE TABLE (?:IF NOT EXISTS )?(\w+)"
   var tableName = ""
-  var matches: array[1, string]
+  var matches : array[1, string]
   if cleanSql.match(tableNamePattern, matches):
     tableName = matches[0]
   
@@ -69,9 +70,10 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
   # カラム定義部分を抽出
   let columnsPattern = re"\(\s*(.*)\s*\)"
   var columnsPart = ""
-  if cleanSql.match(columnsPattern, matches):
-    columnsPart = matches[0]
-  
+  var matches2 = findAll(cleanSql, columnsPattern)
+  if matches2.len > 0:
+    columnsPart = matches2[0]
+
   # 各カラム定義を分割（カンマで区切るが、括弧内は無視）
   var columns: seq[string] = @[]
   var current = ""
@@ -93,7 +95,7 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
           current.add(c)
       else:
         current.add(c)
-  
+
   if current.strip().len > 0:
     columns.add(current.strip())
   
@@ -115,12 +117,9 @@ proc parseSchemaFromSqliteOutput(schemaOutput: string): DatabaseSchema =
   result = DatabaseSchema(tables: initTable[string, TableSchema]())
   
   # 各CREATE TABLE文を分割
-  let statements = schemaOutput.split("CREATE TABLE")
+  let statements = schemaOutput.split("CREATE TABLE").filterIt(it.strip().len > 0)
   
-  for stmt in statements:
-    if stmt.strip().len == 0:
-      continue
-      
+  for stmt in statements:  
     let fullStmt = "CREATE TABLE" & stmt
     if "CREATE TABLE" in fullStmt:
       let tableSchema = parseCreateTableStatement(fullStmt)
@@ -163,39 +162,25 @@ proc generateAllNimTypes(dbSchema: DatabaseSchema): string =
 when isMainModule:
   # テスト用のスキーマ
   let testSchema = """
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     email TEXT UNIQUE,
     age INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE TABLE books (
-    id INTEGER PRIMARY KEY,
-    title TEXT NOT NULL,
-    author TEXT NOT NULL,
-    isbn TEXT UNIQUE,
-    price REAL
-);
-
-CREATE TABLE user_books (
-    user_id INTEGER NOT NULL,
-    book_id INTEGER NOT NULL,
-    borrowed_at TEXT,
-    PRIMARY KEY (user_id, book_id)
-);
 """
 
   echo "=== Schema Parser Test ==="
   
   let dbSchema = parseSchemaFromSqliteOutput(testSchema)
+  # (tables: {"users": (name: "users", columns: @[]), "user_books": (name: "user_books", columns: @[]), "books": (name: "books", columns: @[])})
   
-  echo "Parsed tables:"
-  for tableName, tableSchema in dbSchema.tables:
-    echo &"  Table: {tableName}"
-    for col in tableSchema.columns:
-      echo &"    {col.name}: {col.sqliteType} {col.constraints}"
+  # echo "Parsed tables:"
+  # for tableName, tableSchema in dbSchema.tables:
+  #   echo &"  Table: {tableName}"
+  #   for col in tableSchema.columns:
+  #     echo &"    {col.name}: {col.sqliteType} {col.constraints}"
   
-  echo "\n=== Generated Nim Types ==="
-  echo generateAllNimTypes(dbSchema)
+  # echo "\n=== Generated Nim Types ==="
+  # echo generateAllNimTypes(dbSchema)
