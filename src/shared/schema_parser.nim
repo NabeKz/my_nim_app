@@ -122,7 +122,7 @@ proc sqliteTypeToNimType(sqliteType: SqliteType, constraints: set[ColumnConstrai
       "Option[string]"
 
 proc generateNimTypeDefinition(schema: TableSchema): string =
-  result = &"type\n  {schema.name.capitalizeAscii()}* = object\n"
+  result = &"type\n  {schema.name.capitalizeAscii()}* = ref object\n"
   
   for col in schema.columns:
     let nimType = sqliteTypeToNimType(col.sqliteType, col.constraints)
@@ -145,6 +145,21 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE,
     age INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE books (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    author TEXT NOT NULL,
+    isbn TEXT UNIQUE,
+    price REAL
+);
+
+CREATE TABLE user_books (
+    user_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    borrowed_at TEXT,
+    PRIMARY KEY (user_id, book_id)
 );
 """
 
