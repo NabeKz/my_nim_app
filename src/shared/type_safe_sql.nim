@@ -1,4 +1,10 @@
-import std/[macros, strutils, tables, sequtils]
+import std/macros
+import std/strutils
+import std/tables
+import std/sequtils
+import std/strformat
+import std/options
+
 import db_connector/db_sqlite
 import schema_parser
 
@@ -41,24 +47,62 @@ type
     columns: seq[string]
     whereColumns: seq[string]
 
-proc parseSimpleQuery(query: string): ParsedQuery =
+func extractTableFromQuery(cleanQuery: string): Option[string] =
+  if " FROM " notin cleanQuery:
+    return none(string)
+  
+  let fromIndex = cleanQuery.find(" FROM ") + 6
+  let restQuery = cleanQuery[fromIndex..^1]
+  let parts = restQuery.split(" ").filterIt(it.len > 0)
+  
+  if parts.len > 0:
+    some(parts[0].toLowerAscii())
+  else:
+    none(string)
+
+func extractColumnsFromSelect(cleanQuery: string): seq[string] =
+  let fromPos = cleanQuery.find(" FROM ")
+  if fromPos == -1:
+    return @[]
+  
+  let selectPart = cleanQuery[6..<fromPos].strip()
+  if selectPart == "*":
+    @[]
+  else:
+    selectPart.split(",").mapIt(it.strip().toLowerAscii()).filterIt(it.len > 0)
+
+func parseSimpleQuery(query: string): ParsedQuery =
   let cleanQuery = query.toUpperAscii().strip()
   
   if cleanQuery.startsWith("SELECT"):
-    result.queryType = qtSelect
+    let tableOpt = extractTableFromQuery(cleanQuery)
+    let tables = if tableOpt.isSome: @[tableOpt.get] else: @[]
+    let columns = extractColumnsFromSelect(cleanQuery)
     
-    # FROM句からテーブル名を抽出
-    if " FROM " in cleanQuery:
-      let fromIndex = cleanQuery.find(" FROM ") + 6
-      let restQuery = cleanQuery[fromIndex..^1]
-      let parts = restQuery.split(" ")
-      if parts.len > 0:
-        result.tables.add(parts[0].toLowerAscii())
-    
-    # SELECT句からカラム名を抽出（簡易版）
-    let selectPart = cleanQuery[6..cleanQuery.find(" FROM ")-1].strip()
-    if selectPart != "*":
-      result.columns = selectPart.split(",").mapIt(it.strip().toLowerAscii())
+    ParsedQuery(
+      queryType: qtSelect,
+      tables: tables,
+      columns: columns,
+      whereColumns: @[]
+    )
+  else:
+    ParsedQuery(queryType: qtSelect, tables: @[], columns: @[], whereColumns: @[])
+
+func validateTableExists(tableName: string, schema: DatabaseSchema): bool =
+  tableName in schema.tables
+
+func validateColumnsExist(columns: seq[string], tableName: string, schema: DatabaseSchema): seq[string] =
+  if tableName notin schema.tables:
+    return columns
+  
+  let tableSchema = schema.tables[tableName]
+  let schemaColumns = tableSchema.columns.mapIt(it.name.toLowerAscii())
+  
+  columns.filterIt(it notin schemaColumns)
+
+func checkTypeTableMatch(resultTypeName: string, tableName: string): bool =
+  let expectedTableName = resultTypeName.toLowerAscii()
+  expectedTableName == tableName or expectedTableName == tableName & "s"
 
 # コンパイル時SQLクエリ検証マクロ
 macro typedSql*(query: static[string], resultType: typedesc): untyped =
@@ -66,33 +110,23 @@ macro typedSql*(query: static[string], resultType: typedesc): untyped =
   let parsedQuery = parseSimpleQuery(query)
   
   # テーブルの存在確認
-  for tableName in parsedQuery.tables:
-    if tableName notin DATABASE_SCHEMA.tables:
-      error(&"Table '{tableName}' does not exist in database schema")
+  let invalidTables = parsedQuery.tables.filterIt(not validateTableExists(it, DATABASE_SCHEMA))
+  for tableName in invalidTables:
+    error(&"Table '{tableName}' does not exist in database schema")
   
   # カラムの存在確認
   if parsedQuery.tables.len > 0:
     let tableName = parsedQuery.tables[0]
-    let tableSchema = DATABASE_SCHEMA.tables[tableName]
-    
-    for colName in parsedQuery.columns:
-      var found = false
-      for schemaCol in tableSchema.columns:
-        if schemaCol.name.toLowerAscii() == colName:
-          found = true
-          break
-      
-      if not found:
-        error(&"Column '{colName}' does not exist in table '{tableName}'")
+    let invalidColumns = validateColumnsExist(parsedQuery.columns, tableName, DATABASE_SCHEMA)
+    for colName in invalidColumns:
+      error(&"Column '{colName}' does not exist in table '{tableName}'")
   
   # 型とカラムの整合性チェック（簡易版）
   let resultTypeName = resultType.repr
-  let expectedTableName = resultTypeName.toLowerAscii()
   
   if parsedQuery.tables.len > 0:
     let actualTableName = parsedQuery.tables[0]
-    if expectedTableName != actualTableName and expectedTableName != actualTableName & "s":
-      # 単数形・複数形の違いを許容
+    if not checkTypeTableMatch(resultTypeName, actualTableName):
       warning(&"Result type '{resultTypeName}' may not match table '{actualTableName}'")
   
   # 実際のSQL実行コードを生成
@@ -106,42 +140,75 @@ macro typedSql*(query: static[string], resultType: typedesc): untyped =
   echo &"[Compile-time] Validated SQL: {query}"
   echo &"[Compile-time] Target type: {resultTypeName}"
 
-# 実行時のヘルパー関数
-proc executeTypedQuery*[T](conn: DbConn, query: string): seq[T] =
-  # 実際のSQL実行（型安全性は既にコンパイル時に保証済み）
-  let rows = conn.getAllRows(sql(query))
-  result = @[]
+func generateRowToTypeConversion(typeName: string, tableSchema: TableSchema): NimNode =
+  let typeIdent = ident(typeName)
+  var fieldAssignments: seq[NimNode] = @[]
   
-  # 型に応じた変換（実際の実装では自動生成されるべき）
-  when T is Users:
-    for row in rows:
-      result.add(Users(
-        id: parseInt(row[0]),
-        name: row[1],
-        email: some(row[2]) if row[2] != "" else none(string)
-      ))
-  elif T is Books:
-    for row in rows:
-      result.add(Books(
-        id: parseInt(row[0]),
-        title: row[1],
-        author: row[2]
-      ))
+  for i, col in tableSchema.columns:
+    let fieldName = ident(col.name)
+    let rowAccess = quote do: row[`i`]
+    
+    let fieldValue = case col.sqliteType:
+      of stInteger:
+        if ccPrimaryKey in col.constraints or ccNotNull in col.constraints:
+          quote do: parseInt(`rowAccess`)
+        else:
+          quote do: (if `rowAccess` != "": some(parseInt(`rowAccess`)) else: none(int))
+      of stText:
+        if ccNotNull in col.constraints:
+          rowAccess
+        else:
+          quote do: (if `rowAccess` != "": some(`rowAccess`) else: none(string))
+      of stReal:
+        if ccNotNull in col.constraints:
+          quote do: parseFloat(`rowAccess`)
+        else:
+          quote do: (if `rowAccess` != "": some(parseFloat(`rowAccess`)) else: none(float))
+      else:
+        rowAccess
+    
+    fieldAssignments.add(nnkExprColonExpr.newTree(fieldName, fieldValue))
+  
+  let objConstruction = nnkObjConstr.newTree(typeIdent)
+  for assignment in fieldAssignments:
+    objConstruction.add(assignment)
+  
+  objConstruction
 
-# スキーマから自動生成される型（本来は別ファイル）
-type
-  Users* = object
-    id*: int
-    name*: string
-    email*: Option[string]
+# 実行時のヘルパーマクロ
+macro executeTypedQuery*(conn: DbConn, query: string, resultType: typedesc): untyped =
+  let typeName = resultType.repr
+  let tableName = typeName.toLowerAscii()
   
-  Books* = object
-    id*: int
-    title*: string
-    author*: string
+  if tableName notin DATABASE_SCHEMA.tables:
+    error(&"Table schema for type '{typeName}' not found")
+  
+  let tableSchema = DATABASE_SCHEMA.tables[tableName]
+  let conversionCode = generateRowToTypeConversion(typeName, tableSchema)
+  
+  result = quote do:
+    block:
+      let rows = `conn`.getAllRows(sql(`query`))
+      var result: seq[`resultType`] = @[]
+      
+      for row in rows:
+        result.add(`conversionCode`)
+      
+      result
 
 when isMainModule:
   echo "=== Type-Safe SQL Test ==="
+  # スキーマから自動生成される型（本来は別ファイル）
+  type
+    Users* = object
+      id*: int
+      name*: string
+      email*: Option[string]
+    
+    Books* = object
+      id*: int
+      title*: string
+      author*: string
   
   # これらはコンパイル時に検証される
   let validQuery1 = typedSql("SELECT id, name, email FROM users", Users)
@@ -156,5 +223,6 @@ when isMainModule:
   
   # 実際の使用例（実行時）
   # let conn = open("test.db", "", "", "")
-  # let users: seq[Users] = conn.executeTypedQuery[Users]("SELECT id, name, email FROM users")
+  # let users = conn.executeTypedQuery("SELECT id, name, email FROM users", Users)
+  # let books = conn.executeTypedQuery("SELECT id, title, author FROM books", Books)
   # conn.close()
