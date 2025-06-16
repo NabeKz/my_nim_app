@@ -89,3 +89,35 @@ The application follows a domain-driven design with clear separation between bus
 2. Search for the specific function or feature being asked about
 3. Confirm the exact function signature and behavior
 4. Provide accurate code examples based on the actual API
+
+### Functional Programming Approach
+
+**ALWAYS prefer functional programming patterns when writing code:**
+
+1. **Use high-order functions**: Prefer `mapIt`, `filterIt`, `foldl`, etc. over loops and conditions
+2. **Avoid nested control structures**: Replace nested if/for statements with function chains
+3. **Prefer pure functions**: Use `func` instead of `proc` when possible (no side effects)
+4. **Decompose into small functions**: Break complex logic into small, composable functions
+5. **Use immutable data transformations**: Transform data through function pipelines rather than mutation
+6. **Chain operations**: Connect multiple transformations using method chaining (`.mapIt().filterIt()`)
+
+**Examples of preferred patterns:**
+- `seq.filterIt(condition).mapIt(transform)` instead of nested for/if loops
+- Small helper functions combined with `filterIt`/`mapIt` instead of complex inline logic
+- `Option` types and `some`/`none` for handling nullable values
+- Function composition over imperative control flow
+
+### Naming Conventions for Helper Functions
+
+**Create descriptive, intuitive function names that clearly express their purpose:**
+
+1. **Use action verbs**: `getAtOrDefault`, `parseOrSkip`, `validateAndTransform`
+2. **Include the fallback behavior**: Functions that handle edge cases should indicate the fallback in the name
+3. **Make intent obvious**: Function names should be self-documenting and explain what they do
+4. **Follow patterns**: Use consistent naming patterns across similar functions
+
+**Examples of good helper function names:**
+- `getAtOrDefault` - Get element at index or return default value
+- `parseOrNone` - Parse value or return None if invalid
+- `findAndTransform` - Find element and apply transformation
+- `validateThenApply` - Validate input then apply function

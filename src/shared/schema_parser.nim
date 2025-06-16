@@ -33,7 +33,7 @@ type
   DatabaseSchema* = object
     tables*: Table[string, TableSchema]
 
-proc parseColumnType(typeStr: string): SqliteType =
+func parseColumnType(typeStr: string): SqliteType =
   let upperType = typeStr.toUpperAscii().strip()
   case upperType:
     of "INTEGER", "INT": stInteger
@@ -42,8 +42,7 @@ proc parseColumnType(typeStr: string): SqliteType =
     of "BLOB": stBlob
     else: stText  # デフォルトはTEXT
 
-proc parseConstraints(constraintStr: string): set[ColumnConstraint] =
-  result = {}
+func parseConstraints(constraintStr: string): set[ColumnConstraint] =
   let upperStr = constraintStr.toUpperAscii()
   if "PRIMARY KEY" in upperStr:
     result.incl(ccPrimaryKey)
@@ -53,6 +52,24 @@ proc parseConstraints(constraintStr: string): set[ColumnConstraint] =
     result.incl(ccUnique)
   if "AUTOINCREMENT" in upperStr:
     result.incl(ccAutoIncrement)
+
+func getAtOrDefault[T](s: seq[T], index: int, default: T): T =
+  if index < s.len: s[index] else: default
+
+func isColumnDefinition(colDef: string): bool =
+  let parts = colDef.strip().split(re"\s+")
+  let hasEnoughParts = parts.len >= 2
+  let firstPart = parts.getAtOrDefault(0, "").toUpperAscii()
+  let isNotTableConstraint = firstPart notin ["PRIMARY", "FOREIGN", "UNIQUE", "CHECK", "CONSTRAINT"]
+  
+  return hasEnoughParts and isNotTableConstraint
+
+func parseColumnDef(colDef: string): ColumnInfo =
+  let parts = colDef.strip().split(re"\s+")
+  let colName = parts[0].strip(chars = {'"', '`', '['})
+  let colType = parseColumnType(parts[1])
+  let constraints = parseConstraints(colDef)
+  ColumnInfo(name: colName, sqliteType: colType, constraints: constraints)
 
 proc parseCreateTableStatement(createSql: string): TableSchema =
   # CREATE TABLE文をパースしてテーブルスキーマを抽出
@@ -77,63 +94,59 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
     @[]
   
   # 各カラム定義をパース
-  for colDef in columns:
-    let parts = colDef.strip().split(re"\s+")
-    if parts.len >= 2:
-      # テーブル制約（PRIMARY KEY, FOREIGN KEY等）をスキップ
-      let firstPart = parts[0].toUpperAscii()
-      if firstPart in ["PRIMARY", "FOREIGN", "UNIQUE", "CHECK", "CONSTRAINT"]:
-        continue
-        
-      let colName = parts[0].strip(chars = {'"', '`', '['})
-      let colType = parseColumnType(parts[1])
-      let constraints = parseConstraints(colDef)
-      
-      result.columns.add(ColumnInfo(
-        name: colName,
-        sqliteType: colType,
-        constraints: constraints
-      ))
+  result.columns = columns.filterIt(isColumnDefinition(it)).mapIt(parseColumnDef(it))
+
+func isValidCreateTable(stmt: string): bool =
+  let fullStmt = "CREATE TABLE" & stmt
+  "CREATE TABLE" in fullStmt
+
+func parseValidTableSchema(stmt: string): Option[TableSchema] =
+  let tableSchema = parseCreateTableStatement("CREATE TABLE" & stmt)
+  if tableSchema.name.len > 0:
+    some(tableSchema)
+  else:
+    none(TableSchema)
 
 proc parseSchemaFromSqliteOutput(schemaOutput: string): DatabaseSchema =
   result = DatabaseSchema(tables: initTable[string, TableSchema]())
   
-  # 各CREATE TABLE文を分割
-  let statements = schemaOutput.split("CREATE TABLE").filterIt(it.strip().len > 0)
+  let validSchemas = schemaOutput
+    .split("CREATE TABLE")
+    .filterIt(it.strip().len > 0)
+    .filterIt(isValidCreateTable(it))
+    .mapIt(parseValidTableSchema(it))
+    .filterIt(it.isSome)
+    .mapIt(it.get)
   
-  for stmt in statements:  
-    let fullStmt = "CREATE TABLE" & stmt
-    if "CREATE TABLE" in fullStmt:
-      let tableSchema = parseCreateTableStatement(fullStmt)
-      if tableSchema.name.len > 0:
-        result.tables[tableSchema.name] = tableSchema
+  for schema in validSchemas:
+    result.tables[schema.name] = schema
 
 # スキーマからNim型定義を生成
-proc sqliteTypeToNimType(sqliteType: SqliteType, constraints: set[ColumnConstraint]): string =
-  case sqliteType:
-    of stInteger:
-      if ccPrimaryKey in constraints: "int"
-      else: "Option[int]"
-    of stText:
-      if ccNotNull in constraints: "string"
-      else: "Option[string]"
-    of stReal:
-      if ccNotNull in constraints: "float"
-      else: "Option[float]"
-    of stBlob:
-      if ccNotNull in constraints: "seq[byte]"
-      else: "Option[seq[byte]]"
-    of stNull:
-      "Option[string]"
+const sqliteToNimTypeMap = {
+  stInteger: "int",
+  stText: "string", 
+  stReal: "float",
+  stBlob: "seq[byte]",
+  stNull: "string"
+}.toTable
 
-proc generateNimTypeDefinition(schema: TableSchema): string =
+func sqliteTypeToNimType(sqliteType: SqliteType, constraints: set[ColumnConstraint]): string =
+  let isNotNull = ccNotNull in constraints or ccPrimaryKey in constraints
+  let baseType = sqliteToNimTypeMap[sqliteType]
+  
+  if isNotNull or sqliteType == stNull:
+    baseType
+  else:
+    "Option[" & baseType & "]"
+
+func generateNimTypeDefinition(schema: TableSchema): string =
   result = &"type\n  {schema.name.capitalizeAscii()}* = ref object\n"
   
   for col in schema.columns:
     let nimType = sqliteTypeToNimType(col.sqliteType, col.constraints)
     result.add(&"    {col.name}*: {nimType}\n")
 
-proc generateAllNimTypes(dbSchema: DatabaseSchema): string =
+func generateAllNimTypes(dbSchema: DatabaseSchema): string =
   result = "# Auto-generated from database schema\n\n"
   result.add("import std/options\n\n")
   
