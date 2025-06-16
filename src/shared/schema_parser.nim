@@ -80,6 +80,11 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
   for colDef in columns:
     let parts = colDef.strip().split(re"\s+")
     if parts.len >= 2:
+      # テーブル制約（PRIMARY KEY, FOREIGN KEY等）をスキップ
+      let firstPart = parts[0].toUpperAscii()
+      if firstPart in ["PRIMARY", "FOREIGN", "UNIQUE", "CHECK", "CONSTRAINT"]:
+        continue
+        
       let colName = parts[0].strip(chars = {'"', '`', '['})
       let colType = parseColumnType(parts[1])
       let constraints = parseConstraints(colDef)
