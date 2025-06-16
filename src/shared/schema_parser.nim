@@ -67,37 +67,14 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
   
   result = TableSchema(name: tableName, columns: @[])
   
-  # カラム定義部分を抽出
-  let columnsPattern = re"\(\s*(.*)\s*\)"
-  var columnsPart = ""
-  var matches2 = findAll(cleanSql, columnsPattern)
-  if matches2.len > 0:
-    columnsPart = matches2[0]
-
-  # 各カラム定義を分割（カンマで区切るが、括弧内は無視）
-  var columns: seq[string] = @[]
-  var current = ""
-  var parenDepth = 0
-  
-  for c in columnsPart:
-    case c:
-      of '(':
-        parenDepth += 1
-        current.add(c)
-      of ')':
-        parenDepth -= 1
-        current.add(c)
-      of ',':
-        if parenDepth == 0:
-          columns.add(current.strip())
-          current = ""
-        else:
-          current.add(c)
-      else:
-        current.add(c)
-
-  if current.strip().len > 0:
-    columns.add(current.strip())
+  # カラム定義部分を抽出（括弧内の内容）
+  let startIdx = cleanSql.find('(')
+  let endIdx = cleanSql.rfind(')')
+  let hasValidParens = startIdx != -1 and endIdx != -1 and startIdx < endIdx
+  let columns = if hasValidParens:
+    cleanSql[startIdx + 1 ..< endIdx].strip().split(",").mapIt(it.strip()).filterIt(it.len > 0)
+  else:
+    @[]
   
   # 各カラム定義をパース
   for colDef in columns:
@@ -174,13 +151,12 @@ CREATE TABLE IF NOT EXISTS users (
   echo "=== Schema Parser Test ==="
   
   let dbSchema = parseSchemaFromSqliteOutput(testSchema)
-  # (tables: {"users": (name: "users", columns: @[]), "user_books": (name: "user_books", columns: @[]), "books": (name: "books", columns: @[])})
   
-  # echo "Parsed tables:"
-  # for tableName, tableSchema in dbSchema.tables:
-  #   echo &"  Table: {tableName}"
-  #   for col in tableSchema.columns:
-  #     echo &"    {col.name}: {col.sqliteType} {col.constraints}"
+  echo "Parsed tables:"
+  for tableName, tableSchema in dbSchema.tables:
+    echo &"  Table: {tableName}"
+    for col in tableSchema.columns:
+      echo &"    {col.name}: {col.sqliteType} {col.constraints}"
   
-  # echo "\n=== Generated Nim Types ==="
-  # echo generateAllNimTypes(dbSchema)
+  echo "\n=== Generated Nim Types ==="
+  echo generateAllNimTypes(dbSchema)
