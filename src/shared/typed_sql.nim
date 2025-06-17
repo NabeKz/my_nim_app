@@ -1,5 +1,9 @@
 import db_connector/db_sqlite
-import std/[macros, options, strutils, sequtils, os]
+import std/macros
+import std/options
+import std/strutils
+import std/sequtils
+import std/os
 
 # 型安全なSQL定義のためのマクロ
 type
