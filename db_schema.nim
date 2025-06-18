@@ -17,12 +17,6 @@ const GENERATED_SCHEMA* = block:
     ]
   )
 
-  schema.tables["sqlite_sequence"] = TableSchema(
-    name: "sqlite_sequence",
-    columns: @[
-    ]
-  )
-
   schema.tables["products"] = TableSchema(
     name: "products",
     columns: @[

@@ -9,9 +9,6 @@ type
     age*: Option[int]
 
 type
-  Sqlite_sequence* = ref object
-
-type
   Products* = ref object
     id*: int
     name*: Option[string]
