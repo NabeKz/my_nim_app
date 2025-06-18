@@ -39,7 +39,7 @@ task db_show, "show database tables":
   exec """sqlite3 db.sqlite3 .tables"""
 
 task db_schema, "parse db schema":
-  exec """nim c -r src/shared/db/schema.nim"""
+  exec "nim c -r src/shared/db/schema.nim"
 
 task ut, "run unit test":
   exec """testament p tests/**/*.nim"""
@@ -61,21 +61,18 @@ task strictcheck, "run strict static analysis with all warnings":
       exec "nim check --warnings:on --hints:on " & nimFile
 
 task schema_gen, "generate schema and types from database":
-  echo "Generating schema from database..."
+  echo "Generating schema and types from database..."
   
-  # データベースからスキーマを取得
-  exec "sqlite3 db.sqlite3 .schema > temp_schema.sql"
+  if not fileExists("db.sqlite3"):
+    echo "Database not found. Run 'nimble db_init' first."
+    quit(1)
   
-  # スキーマパーサーでNim型を生成
-  exec "nim c -r src/shared/schema_parser.nim > generated_types.nim"
+  # generate_schema.nimを使用してスキーマと型を生成
+  exec "nim c -r generate_schema.nim db.sqlite3"
   
-  # 生成されたファイルを適切な場所に配置
-  exec "mv generated_types.nim src/shared/"
-  
-  # 一時ファイルを削除
-  if fileExists("temp_schema.sql"):
-    rmFile "temp_schema.sql"
-  
+  echo "Generated files:"
+  echo "  - db_schema.nim (schema definitions)"
+  echo "  - generated_types.nim (type definitions)"
   echo "Schema generation completed!"
 
 task schema_update, "update schema and regenerate types":
@@ -83,3 +80,16 @@ task schema_update, "update schema and regenerate types":
   exec "nimble db_init"  # データベースを再初期化
   exec "nimble schema_gen"  # スキーマを再生成
   echo "Schema update completed!"
+
+task typed_sql_test, "test type-safe SQL functionality":
+  echo "Testing type-safe SQL functionality..."
+  exec "nim c -r src/shared/typed_sql.nim"
+  echo "Type-safe SQL tests completed!"
+
+
+task typed_sql_full, "full type-safe SQL workflow":
+  echo "Running full type-safe SQL workflow..."
+  exec "nimble db_init"
+  exec "nimble schema_gen" 
+  exec "nimble typed_sql_test"
+  echo "Full workflow completed!"

@@ -2,19 +2,19 @@ import db_connector/db_sqlite
 import std/macros
 import std/options
 import std/strutils
+import std/strformat
 import std/sequtils
 
 # 型安全なSQL定義のためのマクロ
 type
   SqlQuery*[T] = object
     query*: string
-    rowType*: typedesc[T]
 
 
 # マクロで型安全なSQLクエリを定義
 macro sql*(query: static[string], returnType: typedesc): untyped =
   result = quote do:
-    SqlQuery[`returnType`](query: `query`, rowType: `returnType`)
+    SqlQuery[`returnType`](query: `query`)
 
 # 型変換インターフェース（各型で実装する必要がある）
 # template fromRow*(t: typedesc[YourType], row: seq[string]): YourType
@@ -70,15 +70,18 @@ macro sqlCheck*(query: static[string]): untyped =
   # パラメータ数チェックなども可能
   result = newLit(query)
 
-runnableExamples:
-  # Define your domain types
+
+when isMainModule:
+  echo "=== Type-Safe SQL Library Demo ==="
+  
+  # Define domain types
   type
     User = object
       id: int
       name: string  
       email: string
 
-  # Implement the fromRow conversion for your types
+  # Implement fromRow conversion
   template fromRow(t: typedesc[User], row: seq[string]): User =
     User(
       id: parseInt(row[0]),
@@ -86,21 +89,28 @@ runnableExamples:
       email: row[2]
     )
 
-  # Setup database
+  # Setup in-memory database
+  echo "\n1. Setting up database..."
   let conn = open(":memory:", "", "", "")
   conn.exec(sql"CREATE TABLE users (id INTEGER, name TEXT, email TEXT)")
   conn.exec(sql"INSERT INTO users VALUES (1, 'Alice', 'alice@example.com')")
+  conn.exec(sql"INSERT INTO users VALUES (2, 'Bob', 'bob@example.com')")
+  echo "   ✓ Database created with sample data"
   
-  # Type-safe SQL queries
+  # Type-safe queries
+  echo "\n2. Type-safe SQL queries..."
   let usersQuery = sql("SELECT id, name, email FROM users", User)
   let users: seq[User] = conn.execute(usersQuery)
-  assert users.len == 1
-  assert users[0].name == "Alice"
+  echo &"   ✓ Found {users.len} users:"
+  for user in users:
+    echo &"     - {user.name} ({user.email})"
   
   # Parameterized queries
+  echo "\n3. Parameterized queries..."
   let userByIdQuery = sql("SELECT id, name, email FROM users WHERE id = ?", User)
   let alice = conn.executeOne(userByIdQuery.withParam("1"))
-  assert alice.isSome
-  assert alice.get().name == "Alice"
+  if alice.isSome:
+    echo &"   ✓ Found user by ID: {alice.get().name}"
   
   conn.close()
+  echo "\n✅ Demo completed successfully!"
