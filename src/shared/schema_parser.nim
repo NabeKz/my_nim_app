@@ -107,7 +107,7 @@ func parseValidTableSchema(stmt: string): Option[TableSchema] =
   else:
     none(TableSchema)
 
-proc parseSchemaFromSqliteOutput(schemaOutput: string): DatabaseSchema =
+proc parseSchemaFromSqliteOutput*(schemaOutput: string): DatabaseSchema =
   result = DatabaseSchema(tables: initTable[string, TableSchema]())
   
   let validSchemas = schemaOutput
@@ -146,7 +146,7 @@ func generateNimTypeDefinition(schema: TableSchema): string =
     let nimType = sqliteTypeToNimType(col.sqliteType, col.constraints)
     result.add(&"    {col.name}*: {nimType}\n")
 
-func generateAllNimTypes(dbSchema: DatabaseSchema): string =
+func generateAllNimTypes*(dbSchema: DatabaseSchema): string =
   result = "# Auto-generated from database schema\n\n"
   result.add("import std/options\n\n")
   
