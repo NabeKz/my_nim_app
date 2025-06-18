@@ -7,7 +7,7 @@ import std/strutils
 import std/sequtils
 import std/tables
 import db_connector/db_sqlite
-from src/shared/schema_parser import parseSchemaFromCreateStatements, generateAllNimTypes, DatabaseSchema, ColumnConstraint, ccPrimaryKey, ccNotNull, ccUnique, ccAutoIncrement
+from ../src/shared/schema_parser import parseSchemaFromCreateStatements, generateAllNimTypes, DatabaseSchema, ColumnConstraint, ccPrimaryKey, ccNotNull, ccUnique, ccAutoIncrement
 
 proc testSchemaGeneration*() =
   echo "=== スキーマ生成機能テスト ==="

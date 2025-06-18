@@ -9,7 +9,6 @@ import std/sequtils
 import std/tables
 import db_connector/db_sqlite
 from src/shared/schema_parser import parseSchemaFromCreateStatements, generateAllNimTypes, DatabaseSchema, ColumnConstraint, ccPrimaryKey, ccNotNull, ccUnique, ccAutoIncrement
-import test_schema_generation
 
 proc generateSchemaFile*(dbPath: string, outputPath: string) =
   echo &"Generating schema from database: {dbPath}"
@@ -75,31 +74,24 @@ proc generateTypeDefinitions*(dbSchema: DatabaseSchema, outputPath: string) =
 when isMainModule:
   if paramCount() < 1:
     echo "Usage: nim r generate_schema.nim <database_path>"
-    echo "       nim r generate_schema.nim --test  # テストモードでインメモリDBを使用"
+    echo "       For testing: nim r tests/test_schema_generation.nim"
     quit(1)
   
-  let arg = paramStr(1)
+  let dbPath = paramStr(1)
+  if not fileExists(dbPath):
+    echo &"Error: Database file '{dbPath}' not found"
+    quit(1)
   
-  if arg == "--test":
-    # テストモード: インメモリDBでテスト実行
-    testSchemaGeneration()
-  else:
-    # 通常モード: 指定されたDBファイルから生成
-    let dbPath = arg
-    if not fileExists(dbPath):
-      echo &"Error: Database file '{dbPath}' not found"
-      quit(1)
-    
-    echo &"Processing database: {dbPath}"
-    generateSchemaFile(dbPath, "db_schema.nim")
-    
-    # 型定義も生成
-    let conn = open(dbPath, "", "", "")
-    let rows = conn.getAllRows(sql"SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL")
-    let createStatements = rows.mapIt(it[0])
-    conn.close()
-    
-    let dbSchema = parseSchemaFromCreateStatements(createStatements)
-    generateTypeDefinitions(dbSchema, "generated_types.nim")
-    
-    echo "✅ Schema generation completed!"
+  echo &"Processing database: {dbPath}"
+  generateSchemaFile(dbPath, "db_schema.nim")
+  
+  # 型定義も生成
+  let conn = open(dbPath, "", "", "")
+  let rows = conn.getAllRows(sql"SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL")
+  let createStatements = rows.mapIt(it[0])
+  conn.close()
+  
+  let dbSchema = parseSchemaFromCreateStatements(createStatements)
+  generateTypeDefinitions(dbSchema, "generated_types.nim")
+  
+  echo "✅ Schema generation completed!"

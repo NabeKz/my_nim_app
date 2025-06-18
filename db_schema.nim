@@ -11,27 +11,8 @@ const GENERATED_SCHEMA* = block:
   schema.tables["users"] = TableSchema(
     name: "users",
     columns: @[
-      ColumnInfo(name: "id", sqliteType: INTEGER, constraints: {ccPrimaryKey, ccAutoIncrement}),
+      ColumnInfo(name: "id", sqliteType: INTEGER, constraints: {ccPrimaryKey}),
       ColumnInfo(name: "name", sqliteType: TEXT, constraints: {ccNotNull}),
-      ColumnInfo(name: "email", sqliteType: TEXT, constraints: {ccUnique}),
-      ColumnInfo(name: "age", sqliteType: INTEGER, constraints: {}),
-      ColumnInfo(name: "created_at", sqliteType: TEXT, constraints: {}),
-    ]
-  )
-
-  schema.tables["sqlite_sequence"] = TableSchema(
-    name: "sqlite_sequence",
-    columns: @[
-    ]
-  )
-
-  schema.tables["user_books"] = TableSchema(
-    name: "user_books",
-    columns: @[
-      ColumnInfo(name: "user_id", sqliteType: INTEGER, constraints: {ccNotNull}),
-      ColumnInfo(name: "book_id", sqliteType: INTEGER, constraints: {ccNotNull}),
-      ColumnInfo(name: "borrowed_at", sqliteType: TEXT, constraints: {}),
-      ColumnInfo(name: "returned_at", sqliteType: TEXT, constraints: {}),
     ]
   )
 
@@ -39,11 +20,7 @@ const GENERATED_SCHEMA* = block:
     name: "books",
     columns: @[
       ColumnInfo(name: "id", sqliteType: INTEGER, constraints: {ccPrimaryKey}),
-      ColumnInfo(name: "title", sqliteType: TEXT, constraints: {ccNotNull}),
-      ColumnInfo(name: "author", sqliteType: TEXT, constraints: {ccNotNull}),
-      ColumnInfo(name: "isbn", sqliteType: TEXT, constraints: {ccUnique}),
-      ColumnInfo(name: "price", sqliteType: REAL, constraints: {}),
-      ColumnInfo(name: "published_year", sqliteType: INTEGER, constraints: {}),
+      ColumnInfo(name: "title", sqliteType: TEXT, constraints: {}),
     ]
   )
 
