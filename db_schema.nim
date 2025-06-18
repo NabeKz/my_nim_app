@@ -13,6 +13,7 @@ const GENERATED_SCHEMA* = block:
     columns: @[
       ColumnInfo(name: "id", sqliteType: INTEGER, constraints: {ccPrimaryKey, ccAutoIncrement}),
       ColumnInfo(name: "name", sqliteType: TEXT, constraints: {}),
+      ColumnInfo(name: "email", sqliteType: TEXT, constraints: {ccUnique}),
       ColumnInfo(name: "age", sqliteType: INTEGER, constraints: {}),
     ]
   )

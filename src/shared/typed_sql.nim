@@ -16,6 +16,7 @@ macro sql*(query: static[string], returnType: typedesc): untyped =
   result = quote do:
     SqlQuery[`returnType`](query: `query`)
 
+
 # 型変換インターフェース（各型で実装する必要がある）
 # template fromRow*(t: typedesc[YourType], row: seq[string]): YourType
 
@@ -26,11 +27,19 @@ proc execute*[T](conn: DbConn, sqlQuery: SqlQuery[T]): seq[T] =
   rows.mapIt(T.fromRow(it))
 
 proc executeOne*[T](conn: DbConn, sqlQuery: SqlQuery[T]): Option[T] =
-  let results = conn.execute(sqlQuery)
-  if results.len == 1:
-    some(results[0])
-  else:
+  # executeOneは常にLIMIT 1を強制
+  let optimizedQuery = sqlQuery.query & " LIMIT 1"
+  
+  try:
+    let row = conn.getRow(sql(optimizedQuery))
+    if row.len > 0 and row[0] != "":
+      some(T.fromRow(row))
+    else:
+      none(T)
+  except CatchableError as e:
+    echo &"[ERROR] executeOne failed: query='{optimizedQuery}', error={e.msg}"
     none(T)
+
 
 # パラメータ化クエリのための型安全版
 type
@@ -53,10 +62,17 @@ proc execute*[T](conn: DbConn, sqlQuery: SqlQueryWithParams[T]): seq[T] =
   rows.mapIt(T.fromRow(it))
 
 proc executeOne*[T](conn: DbConn, sqlQuery: SqlQueryWithParams[T]): Option[T] =
-  let results = conn.execute(sqlQuery)
-  if results.len == 1:
-    some(results[0])
-  else:
+  # executeOneは常にLIMIT 1を強制
+  let optimizedQuery = sqlQuery.query & " LIMIT 1"
+  
+  try:
+    let row = conn.getRow(sql(optimizedQuery), sqlQuery.params)
+    if row.len > 0 and row[0] != "":
+      some(T.fromRow(row))
+    else:
+      none(T)
+  except CatchableError as e:
+    echo &"[ERROR] executeOne failed: query='{optimizedQuery}', params={sqlQuery.params}, error={e.msg}"
     none(T)
 
 # コンパイル時SQLチェック用のマクロ

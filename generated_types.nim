@@ -6,6 +6,7 @@ type
   Users* = ref object
     id*: int
     name*: Option[string]
+    email*: Option[string]
     age*: Option[int]
 
 type
