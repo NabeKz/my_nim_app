@@ -17,8 +17,8 @@ proc generateSchemaFile*(dbPath: string, outputPath: string) =
   let conn = open(dbPath, "", "", "")
   defer: conn.close()
   
-  # スキーマ情報を取得
-  let rows = conn.getAllRows(sql"SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL")
+  # スキーマ情報を取得（システムテーブルを除外）
+  let rows = conn.getAllRows(sql"SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL AND name NOT LIKE 'sqlite_%'")
   let createStatements = rows.mapIt(it[0])
   
   # スキーマを解析（効率的な新しい方法）
@@ -87,7 +87,7 @@ when isMainModule:
   
   # 型定義も生成
   let conn = open(dbPath, "", "", "")
-  let rows = conn.getAllRows(sql"SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL")
+  let rows = conn.getAllRows(sql"SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL AND name NOT LIKE 'sqlite_%'")
   let createStatements = rows.mapIt(it[0])
   conn.close()
   

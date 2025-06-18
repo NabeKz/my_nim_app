@@ -52,8 +52,8 @@ proc testSchemaGeneration*() =
   
   echo "\n✓ テストテーブル作成完了"
   
-  # スキーマ情報を取得
-  let rows = conn.getAllRows(sql"SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL")
+  # スキーマ情報を取得（システムテーブルを除外）
+  let rows = conn.getAllRows(sql"SELECT sql FROM sqlite_master WHERE type='table' AND sql IS NOT NULL AND name NOT LIKE 'sqlite_%'")
   let createStatements = rows.mapIt(it[0])
   
   echo "\n📋 取得したCREATE文:"
@@ -65,11 +65,10 @@ proc testSchemaGeneration*() =
   
   echo "\n🔍 解析結果:"
   for tableName, tableSchema in dbSchema.tables:
-    if tableName != "sqlite_sequence":  # システムテーブルは除外
-      echo &"  📊 テーブル: {tableName}"
-      for col in tableSchema.columns:
-        let constraintStr = if col.constraints.card == 0: "" else: &" {col.constraints}"
-        echo &"    - {col.name}: {col.sqliteType}{constraintStr}"
+    echo &"  📊 テーブル: {tableName}"
+    for col in tableSchema.columns:
+      let constraintStr = if col.constraints.card == 0: "" else: &" {col.constraints}"
+      echo &"    - {col.name}: {col.sqliteType}{constraintStr}"
   
   # Nim型定義を生成
   let typeCode = generateAllNimTypes(dbSchema)
@@ -97,28 +96,27 @@ const TEST_SCHEMA* = block:
   
 """
   
-  # システムテーブル以外を追加
+  # 各テーブルを追加
   for tableName, tableSchema in dbSchema.tables:
-    if tableName != "sqlite_sequence":
-      nimCode.add(&"  schema.tables[\"{tableName}\"] = TableSchema(\\n")
-      nimCode.add(&"    name: \"{tableName}\",\\n")
-      nimCode.add("    columns: @[\\n")
+    nimCode.add(&"  schema.tables[\"{tableName}\"] = TableSchema(\\n")
+    nimCode.add(&"    name: \"{tableName}\",\\n")
+    nimCode.add("    columns: @[\\n")
+    
+    for col in tableSchema.columns:
+      let constraintsStr = if col.constraints.card == 0:
+        "{}"
+      else:
+        var parts: seq[string] = @[]
+        if ccPrimaryKey in col.constraints: parts.add("ccPrimaryKey")
+        if ccNotNull in col.constraints: parts.add("ccNotNull") 
+        if ccUnique in col.constraints: parts.add("ccUnique")
+        if ccAutoIncrement in col.constraints: parts.add("ccAutoIncrement")
+        "{" & parts.join(", ") & "}"
       
-      for col in tableSchema.columns:
-        let constraintsStr = if col.constraints.card == 0:
-          "{}"
-        else:
-          var parts: seq[string] = @[]
-          if ccPrimaryKey in col.constraints: parts.add("ccPrimaryKey")
-          if ccNotNull in col.constraints: parts.add("ccNotNull") 
-          if ccUnique in col.constraints: parts.add("ccUnique")
-          if ccAutoIncrement in col.constraints: parts.add("ccAutoIncrement")
-          "{" & parts.join(", ") & "}"
-        
-        nimCode.add(&"      ColumnInfo(name: \"{col.name}\", sqliteType: {col.sqliteType}, constraints: {constraintsStr}),\\n")
-      
-      nimCode.add("    ]\\n")
-      nimCode.add("  )\\n\\n")
+      nimCode.add(&"      ColumnInfo(name: \"{col.name}\", sqliteType: {col.sqliteType}, constraints: {constraintsStr}),\\n")
+    
+    nimCode.add("    ]\\n")
+    nimCode.add("  )\\n\\n")
   
   nimCode.add("  schema\\n")
   

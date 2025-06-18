@@ -11,16 +11,26 @@ const GENERATED_SCHEMA* = block:
   schema.tables["users"] = TableSchema(
     name: "users",
     columns: @[
-      ColumnInfo(name: "id", sqliteType: INTEGER, constraints: {ccPrimaryKey}),
-      ColumnInfo(name: "name", sqliteType: TEXT, constraints: {ccNotNull}),
+      ColumnInfo(name: "id", sqliteType: INTEGER, constraints: {ccPrimaryKey, ccAutoIncrement}),
+      ColumnInfo(name: "name", sqliteType: TEXT, constraints: {}),
+      ColumnInfo(name: "age", sqliteType: INTEGER, constraints: {}),
     ]
   )
 
-  schema.tables["books"] = TableSchema(
-    name: "books",
+  schema.tables["sqlite_sequence"] = TableSchema(
+    name: "sqlite_sequence",
     columns: @[
-      ColumnInfo(name: "id", sqliteType: INTEGER, constraints: {ccPrimaryKey}),
-      ColumnInfo(name: "title", sqliteType: TEXT, constraints: {}),
+    ]
+  )
+
+  schema.tables["products"] = TableSchema(
+    name: "products",
+    columns: @[
+      ColumnInfo(name: "id", sqliteType: INTEGER, constraints: {ccPrimaryKey, ccAutoIncrement}),
+      ColumnInfo(name: "name", sqliteType: TEXT, constraints: {}),
+      ColumnInfo(name: "description", sqliteType: TEXT, constraints: {}),
+      ColumnInfo(name: "price", sqliteType: INTEGER, constraints: {}),
+      ColumnInfo(name: "stock", sqliteType: INTEGER, constraints: {}),
     ]
   )
 

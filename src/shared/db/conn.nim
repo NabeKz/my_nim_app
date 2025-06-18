@@ -105,18 +105,9 @@ when isMainModule:
   import std/os
   import std/algorithm
   import std/sequtils
-  import src/features/user/model
+  import src/features/books/model
 
   when defined(migrate):
     let db = dbConn(getCurrentDir() & "/db.sqlite3")
     execDDL(db)
-    return
 
-  dbOnMemory db:
-    for jsonNode in db.select(UserRecord()):
-      echo jsonNode
-
-    discard db.save(User(name: "hoge", age: 20))
-
-    for jsonNode in db.select(UserRecord()):
-      echo jsonNode

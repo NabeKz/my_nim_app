@@ -5,10 +5,17 @@ import std/options
 type
   Users* = ref object
     id*: int
-    name*: string
+    name*: Option[string]
+    age*: Option[int]
 
 type
-  Books* = ref object
+  Sqlite_sequence* = ref object
+
+type
+  Products* = ref object
     id*: int
-    title*: Option[string]
+    name*: Option[string]
+    description*: Option[string]
+    price*: Option[int]
+    stock*: Option[int]
 

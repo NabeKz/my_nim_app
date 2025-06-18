@@ -11,16 +11,6 @@ type
     created_at*: Option[string]
 
 type
-  Sqlite_sequence* = ref object
-
-type
-  User_books* = ref object
-    user_id*: int
-    book_id*: int
-    borrowed_at*: Option[string]
-    returned_at*: Option[string]
-
-type
   Books* = ref object
     id*: int
     title*: string
@@ -28,4 +18,11 @@ type
     isbn*: Option[string]
     price*: Option[float]
     published_year*: Option[int]
+
+type
+  User_books* = ref object
+    user_id*: int
+    book_id*: int
+    borrowed_at*: Option[string]
+    returned_at*: Option[string]
 
