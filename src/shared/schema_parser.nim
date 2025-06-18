@@ -96,30 +96,26 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
   # 各カラム定義をパース
   result.columns = columns.filterIt(isColumnDefinition(it)).mapIt(parseColumnDef(it))
 
-func isValidCreateTable(stmt: string): bool =
-  let fullStmt = "CREATE TABLE" & stmt
-  "CREATE TABLE" in fullStmt
 
-func parseValidTableSchema(stmt: string): Option[TableSchema] =
-  let tableSchema = parseCreateTableStatement("CREATE TABLE" & stmt)
-  if tableSchema.name.len > 0:
-    some(tableSchema)
-  else:
-    none(TableSchema)
+# ヘルパー関数: 有効なテーブルスキーマかチェック
+func isValidTableSchema(tableSchema: TableSchema): bool =
+  tableSchema.name.len > 0
 
-proc parseSchemaFromSqliteOutput*(schemaOutput: string): DatabaseSchema =
-  result = DatabaseSchema(tables: initTable[string, TableSchema]())
-  
-  let validSchemas = schemaOutput
-    .split("CREATE TABLE")
+# ヘルパー関数: テーブルスキーマをタプルに変換
+func toTablePair(tableSchema: TableSchema): (string, TableSchema) =
+  (tableSchema.name, tableSchema)
+
+# sqlite_masterクエリ結果から直接解析（関数型スタイル）
+proc parseSchemaFromCreateStatements*(createStatements: seq[string]): DatabaseSchema =
+  let tables = createStatements
     .filterIt(it.strip().len > 0)
-    .filterIt(isValidCreateTable(it))
-    .mapIt(parseValidTableSchema(it))
-    .filterIt(it.isSome)
-    .mapIt(it.get)
+    .mapIt(parseCreateTableStatement(it))
+    .filterIt(isValidTableSchema(it))
+    .mapIt(toTablePair(it))
+    .toTable
   
-  for schema in validSchemas:
-    result.tables[schema.name] = schema
+  DatabaseSchema(tables: tables)
+
 
 # スキーマからNim型定義を生成
 const sqliteToNimTypeMap = {
