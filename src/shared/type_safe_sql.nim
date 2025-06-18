@@ -8,6 +8,8 @@ import std/options
 import db_connector/db_sqlite
 import schema_parser
 
+include ./db_schema
+
 # コンパイル時にスキーマ情報を保持
 const SCHEMA_FILE = "generated_schema.nim"
 

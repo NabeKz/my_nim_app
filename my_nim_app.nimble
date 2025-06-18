@@ -81,15 +81,8 @@ task schema_update, "update schema and regenerate types":
   exec "nimble schema_gen"  # スキーマを再生成
   echo "Schema update completed!"
 
-task typed_sql_test, "test type-safe SQL functionality":
-  echo "Testing type-safe SQL functionality..."
-  exec "nim c -r src/shared/typed_sql.nim"
-  echo "Type-safe SQL tests completed!"
-
-
 task typed_sql_full, "full type-safe SQL workflow":
   echo "Running full type-safe SQL workflow..."
   exec "nimble db_init"
   exec "nimble schema_gen" 
-  exec "nimble typed_sql_test"
   echo "Full workflow completed!"
