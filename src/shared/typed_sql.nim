@@ -2,14 +2,12 @@ import db_connector/db_sqlite
 import std/macros
 import std/options
 import std/strutils
-import std/sequtils
-import std/os
 
 # 型安全なSQL定義のためのマクロ
 type
   SqlQuery*[T] = object
-    query: string
-    rowType: typedesc[T]
+    query*: string
+    rowType*: typedesc[T]
 
   # よく使われる型のエイリアス
   User* = object
@@ -58,15 +56,13 @@ proc executeOne*[T](conn: DbConn, sqlQuery: SqlQuery[T]): Option[T] =
 # パラメータ化クエリのための型安全版
 type
   SqlQueryWithParams*[T] = object
-    query: string
-    params: seq[string]
-    rowType: typedesc[T]
+    query*: string
+    params*: seq[string]
 
 proc withParams*[T](sqlQuery: SqlQuery[T], params: seq[string]): SqlQueryWithParams[T] =
   SqlQueryWithParams[T](
     query: sqlQuery.query,
-    params: params,
-    rowType: T
+    params: params
   )
 
 # 便利な単一パラメータ版
@@ -112,76 +108,66 @@ macro sqlCheck*(query: static[string]): untyped =
   result = newLit(query)
 
 when isMainModule:
-  proc runTypedSqlExamples() =
-    echo "=== Type-Safe SQL Examples ==="
-    
-    let conn = open("typed_test.db", "", "", "")
-    defer: conn.close()
-    
-    # テーブル作成
-    conn.exec(sql"""
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL
-      )
-    """)
-    
-    conn.exec(sql"""
-      CREATE TABLE IF NOT EXISTS books (
-        id INTEGER PRIMARY KEY,
-        title TEXT NOT NULL,
-        author TEXT NOT NULL
-      )
-    """)
-    
-    # データ挿入
-    conn.exec(sql"INSERT OR REPLACE INTO users VALUES (1, 'Alice', 'alice@example.com')")
-    conn.exec(sql"INSERT OR REPLACE INTO users VALUES (2, 'Bob', 'bob@example.com')")
-    conn.exec(sql"INSERT OR REPLACE INTO books VALUES (1, 'Nim in Action', 'Dominik Picheta')")
-    
-    # 型安全なクエリ定義（コンパイル時にチェック）
-    const getUsersQuery = sql("SELECT id, name, email FROM users", User)
-    const getBooksQuery = sql("SELECT id, title, author FROM books", Book)
-    const getUserByIdQuery = sql("SELECT id, name, email FROM users WHERE id = ?", User)
-    
-    # 実行 - 戻り値の型が保証される
-    let users: seq[User] = conn.execute(getUsersQuery)
-    echo "All users:"
-    for user in users:
-      echo "  ", user.name, " (", user.email, ")"
-    
-    let books: seq[Book] = conn.execute(getBooksQuery)
-    echo "All books:"
-    for book in books:
-      echo "  ", book.title, " by ", book.author
-    
-    # パラメータ付きクエリ
-    let specificUser: Option[User] = conn.executeOne(
-      getUserByIdQuery.withParam("1")
-    )
-    
-    if specificUser.isSome:
-      let user = specificUser.get()
-      echo "Found user: ", user.name
-    
-    # コンパイル時SQLチェック
-    const validQuery = sqlCheck("SELECT * FROM users")
-    echo "Valid query checked at compile time: ", validQuery
-    
-    # 以下はコンパイルエラーになる
-    # const invalidQuery = sqlCheck("INVALID SQL")
-    
-    # 型が間違っていればコンパイルエラー
-    # let wrongType: seq[Book] = conn.execute(getUsersQuery) # エラー！
-    
-    # クリーンアップ
-    conn.exec(sql"DROP TABLE IF EXISTS users")
-    conn.exec(sql"DROP TABLE IF EXISTS books")
-    
-    if fileExists("typed_test.db"):
-      removeFile("typed_test.db")
-    
-    echo "Type safety demonstrated!"
+  echo "=== Type-Safe SQL Examples ==="
   
-  runTypedSqlExamples()
+  let conn = open(":memory:", "", "", "")
+  
+  # テーブル作成
+  conn.exec(sql"""
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL
+    )
+  """)
+  
+  conn.exec(sql"""
+    CREATE TABLE IF NOT EXISTS books (
+      id INTEGER PRIMARY KEY,
+      title TEXT NOT NULL,
+      author TEXT NOT NULL
+    )
+  """)
+  
+  # データ挿入
+  conn.exec(sql"INSERT OR REPLACE INTO users VALUES (1, 'Alice', 'alice@example.com')")
+  conn.exec(sql"INSERT OR REPLACE INTO users VALUES (2, 'Bob', 'bob@example.com')")
+  conn.exec(sql"INSERT OR REPLACE INTO books VALUES (1, 'Nim in Action', 'Dominik Picheta')")
+  
+  # 型安全なクエリ定義（コンパイル時にチェック）
+  const getUsersQuery = sql("SELECT id, name, email FROM users", User)
+  const getBooksQuery = sql("SELECT id, title, author FROM books", Book)
+  const getUserByIdQuery = sql("SELECT id, name, email FROM users WHERE id = ?", User)
+  
+  # 実行 - 戻り値の型が保証される
+  let users: seq[User] = conn.execute(getUsersQuery)
+  echo "All users:"
+  for user in users:
+    echo "  ", user.name, " (", user.email, ")"
+  
+  let books: seq[Book] = conn.execute(getBooksQuery)
+  echo "All books:"
+  for book in books:
+    echo "  ", book.title, " by ", book.author
+  
+  # パラメータ付きクエリ
+  let specificUser: Option[User] = conn.executeOne(
+    getUserByIdQuery.withParam("1")
+  )
+  
+  if specificUser.isSome:
+    let user = specificUser.get()
+    echo "Found user: ", user.name
+  
+  # コンパイル時SQLチェック
+  const validQuery = sqlCheck("SELECT * FROM users")
+  echo "Valid query checked at compile time: ", validQuery
+  
+  # 以下はコンパイルエラーになる
+  # const invalidQuery = sqlCheck("INVALID SQL")
+  
+  # 型が間違っていればコンパイルエラー
+  # let wrongType: seq[Book] = conn.execute(getUsersQuery) # エラー！
+  
+  conn.close()
+  echo "Type safety demonstrated!"
