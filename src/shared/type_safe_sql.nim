@@ -93,6 +93,33 @@ func validateColumnsExist(columns: seq[string], tableName: string, schema: Datab
   columns.filterIt(it notin schemaColumns)
 
 
+func validateTypeFieldTypeMatch(resultType: NimNode, tableName: string): void =
+  if tableName notin DATABASE_SCHEMA.tables:
+    return
+    
+  let tableSchema = DATABASE_SCHEMA.tables[tableName]
+  let typeImpl = resultType.getTypeImpl()
+  
+  # typedesc[T]の場合、T部分を取得
+  let actualType = if typeImpl.kind == nnkBracketExpr and typeImpl.len > 1:
+    typeImpl[1].getTypeImpl()
+  else:
+    typeImpl
+  
+  if actualType.kind == nnkObjectTy and actualType[2].kind == nnkRecList:
+    for fieldDef in actualType[2]:
+      if fieldDef.kind == nnkIdentDefs:
+        let fieldName = fieldDef[0].strVal.toLowerAscii()
+        let fieldTypeNode = fieldDef[^2]
+        let fieldTypeName = fieldTypeNode.repr
+        
+        # スキーマから対応するカラムを検索
+        for col in tableSchema.columns:
+          if col.name.toLowerAscii() == fieldName:
+            if col.nimType != fieldTypeName:
+              error(&"Type mismatch for field '{fieldName}': expected '{col.nimType}' but got '{fieldTypeName}'")
+            break
+
 func validateTypeFieldMatch(selectedColumns: seq[string], resultTypeName: string, tableName: string): seq[string] =
   if selectedColumns.len == 0:  # SELECT * の場合はスキップ
     return @[]
@@ -109,6 +136,11 @@ func validateTypeFieldMatch(selectedColumns: seq[string], resultTypeName: string
   
   @[]
 
+func validateTableTypeNameMatch(resultTypeName: string, tableName: string): void =
+  let expectedTableName = resultTypeName.toLowerAscii()
+  if expectedTableName != tableName and expectedTableName != tableName & "s":
+    error(&"Result type '{resultTypeName}' may not match table '{tableName}'")
+
 # コンパイル時SQLクエリ検証マクロ
 macro typedSql*(query: static[string], resultType: typedesc): untyped =
   # クエリを解析
@@ -119,66 +151,29 @@ macro typedSql*(query: static[string], resultType: typedesc): untyped =
   for tableName in invalidTables:
     error(&"Table '{tableName}' does not exist in database schema")
   
-  # カラムの存在確認
-  if parsedQuery.tables.len > 0:
-    let tableName = parsedQuery.tables[0]
-    let invalidColumns = validateColumnsExist(parsedQuery.columns, tableName, DATABASE_SCHEMA)
-    for colName in invalidColumns:
-      error(&"Column '{colName}' does not exist in table '{tableName}'")
+  # 共通の前処理
+  if parsedQuery.tables.len == 0:
+    result = quote do: sql(`query`)
+    return
   
-  # SELECT文のカラムと型フィールドの一致チェック  
-  if parsedQuery.tables.len > 0:
-    let resultTypeName = resultType.repr
-    let tableName = parsedQuery.tables[0]
-    let invalidFields = validateTypeFieldMatch(parsedQuery.columns, resultTypeName, tableName)
-    for fieldName in invalidFields:
-      error(&"Selected column '{fieldName}' not found in table '{tableName}'")
-    
-    # 型の一致チェック
-    if tableName in DATABASE_SCHEMA.tables:
-      let tableSchema = DATABASE_SCHEMA.tables[tableName]
-      let typeImpl = resultType.getTypeImpl()
-      
-      # typedesc[T]の場合、T部分を取得
-      let actualType = if typeImpl.kind == nnkBracketExpr and typeImpl.len > 1:
-        typeImpl[1].getTypeImpl()
-      else:
-        typeImpl
-      
-      debugEcho &"Actual type kind: {actualType.kind}"
-      if actualType.len > 2:
-        debugEcho &"ActualType[2] kind: {actualType[2].kind}"
-      
-      if actualType.kind == nnkObjectTy and actualType[2].kind == nnkRecList:
-        for fieldDef in actualType[2]:
-          if fieldDef.kind == nnkIdentDefs:
-            let fieldName = fieldDef[0].strVal.toLowerAscii()
-            let fieldTypeNode = fieldDef[^2]
-            let fieldTypeName = fieldTypeNode.repr
-            
-            # スキーマから対応するカラムを検索
-            for col in tableSchema.columns:
-              if col.name.toLowerAscii() == fieldName:
-                debugEcho &"Field '{fieldName}': schema='{col.nimType}' vs actual='{fieldTypeName}'"
-                if col.nimType != fieldTypeName:
-                  error(&"Type mismatch for field '{fieldName}': expected '{col.nimType}' but got '{fieldTypeName}'")
-                break
+  let tableName = parsedQuery.tables[0]
+  let resultTypeName = resultType.repr
   
-  # テーブル名と型名の簡易チェック（warning）
-  if parsedQuery.tables.len > 0:
-    let resultTypeName = resultType.repr
-    let actualTableName = parsedQuery.tables[0]
-    let expectedTableName = resultTypeName.toLowerAscii()
-    if expectedTableName != actualTableName and expectedTableName != actualTableName & "s":
-      error(&"Result type '{resultTypeName}' may not match table '{actualTableName}'")
+  # 各種バリデーション
+  let invalidColumns = validateColumnsExist(parsedQuery.columns, tableName, DATABASE_SCHEMA)
+  for colName in invalidColumns:
+    error(&"Column '{colName}' does not exist in table '{tableName}'")
+  
+  let invalidFields = validateTypeFieldMatch(parsedQuery.columns, resultTypeName, tableName)
+  for fieldName in invalidFields:
+    error(&"Selected column '{fieldName}' not found in table '{tableName}'")
+  
+  validateTypeFieldTypeMatch(resultType, tableName)
+  validateTableTypeNameMatch(resultTypeName, tableName)
   
   # 普通のSQL実行を返す
   result = quote do:
     sql(`query`)
-  
-  # デバッグ用
-  debugEcho "[Compile-time] Validated SQL: $1" % [query]
-  debugEcho "[Compile-time] Target type: $1" % [resultType.repr]
 
 
 when isMainModule:
