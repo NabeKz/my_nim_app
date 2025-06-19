@@ -1,13 +1,12 @@
-import ulid
-import std/algorithm
+import pkg/ulid
 
 proc generateUlid*(): string =
   ## Generate a new ULID string
-  return ulid.ulid()
+  ulid.ulid()
 
 proc generateUlidWithTime*(timestamp: int): string =
   ## Generate a ULID with specific timestamp
-  return ulid.ulid(timestamp)
+  ulid.ulid(timestamp)
 
 proc isValidUlid*(ulidStr: string): bool =
   ## Check if a string is a valid ULID format (26 characters, valid alphabet)
@@ -23,6 +22,7 @@ proc isValidUlid*(ulidStr: string): bool =
 
 when isMainModule:
   import times
+  import std/algorithm
   
   # ULID使用例
   echo "=== ULID Usage Examples ==="

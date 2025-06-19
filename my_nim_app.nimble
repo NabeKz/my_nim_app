@@ -11,7 +11,7 @@ bin           = @["app"]
 
 # Dependencies
 
-requires "nim >= 2.2.0", "db_connector", "ulid", "norm"
+requires "nim >= 2.2.0", "db_connector", "ulid"
 
 import os
 import std/strutils
