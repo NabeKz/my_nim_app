@@ -23,6 +23,7 @@ type
   ColumnInfo* = object
     name*: string
     sqliteType*: SqliteType
+    nimType*: string
     constraints*: set[ColumnConstraint]
     defaultValue*: Option[string]
 

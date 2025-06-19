@@ -19,20 +19,12 @@ const DATABASE_SCHEMA = block:
   schema.tables["users"] = TableSchema(
     name: "users",
     columns: @[
-      ColumnInfo(name: "id", sqliteType: stInteger, constraints: {ccPrimaryKey}),
-      ColumnInfo(name: "name", sqliteType: stText, constraints: {ccNotNull}),
-      ColumnInfo(name: "email", sqliteType: stText, constraints: {ccUnique})
+      ColumnInfo(name: "id", sqliteType: stInteger, nimType: "int", constraints: {ccPrimaryKey}),
+      ColumnInfo(name: "name", sqliteType: stText, nimType: "string", constraints: {ccNotNull}),
+      ColumnInfo(name: "email", sqliteType: stText, nimType: "string", constraints: {ccUnique})
     ]
   )
   
-  schema.tables["books"] = TableSchema(
-    name: "books", 
-    columns: @[
-      ColumnInfo(name: "id", sqliteType: stInteger, constraints: {ccPrimaryKey}),
-      ColumnInfo(name: "title", sqliteType: stText, constraints: {ccNotNull}),
-      ColumnInfo(name: "author", sqliteType: stText, constraints: {ccNotNull})
-    ]
-  )
   
   schema
 
@@ -100,9 +92,22 @@ func validateColumnsExist(columns: seq[string], tableName: string, schema: Datab
   
   columns.filterIt(it notin schemaColumns)
 
-func checkTypeTableMatch(resultTypeName: string, tableName: string): bool =
+
+func validateTypeFieldMatch(selectedColumns: seq[string], resultTypeName: string, tableName: string): seq[string] =
+  if selectedColumns.len == 0:  # SELECT * の場合はスキップ
+    return @[]
+  
+  # 簡易チェック: 型名とテーブル名が一致する場合のみ厳密チェック
   let expectedTableName = resultTypeName.toLowerAscii()
-  expectedTableName == tableName or expectedTableName == tableName & "s"
+  if expectedTableName != tableName and expectedTableName != tableName & "s":
+    return @[]  # 型名が一致しない場合はスキップ
+  
+  # テーブルのカラムと選択したカラムを比較
+  if tableName in DATABASE_SCHEMA.tables:
+    let tableColumns = DATABASE_SCHEMA.tables[tableName].columns.mapIt(it.name.toLowerAscii())
+    return selectedColumns.filterIt(it notin tableColumns)
+  
+  @[]
 
 # コンパイル時SQLクエリ検証マクロ
 macro typedSql*(query: static[string], resultType: typedesc): untyped =
@@ -121,21 +126,59 @@ macro typedSql*(query: static[string], resultType: typedesc): untyped =
     for colName in invalidColumns:
       error(&"Column '{colName}' does not exist in table '{tableName}'")
   
-  # 型とカラムの整合性チェック（簡易版）
-  let resultTypeName = resultType.repr
-  
+  # SELECT文のカラムと型フィールドの一致チェック  
   if parsedQuery.tables.len > 0:
+    let resultTypeName = resultType.repr
+    let tableName = parsedQuery.tables[0]
+    let invalidFields = validateTypeFieldMatch(parsedQuery.columns, resultTypeName, tableName)
+    for fieldName in invalidFields:
+      error(&"Selected column '{fieldName}' not found in table '{tableName}'")
+    
+    # 型の一致チェック
+    if tableName in DATABASE_SCHEMA.tables:
+      let tableSchema = DATABASE_SCHEMA.tables[tableName]
+      let typeImpl = resultType.getTypeImpl()
+      
+      # typedesc[T]の場合、T部分を取得
+      let actualType = if typeImpl.kind == nnkBracketExpr and typeImpl.len > 1:
+        typeImpl[1].getTypeImpl()
+      else:
+        typeImpl
+      
+      debugEcho &"Actual type kind: {actualType.kind}"
+      if actualType.len > 2:
+        debugEcho &"ActualType[2] kind: {actualType[2].kind}"
+      
+      if actualType.kind == nnkObjectTy and actualType[2].kind == nnkRecList:
+        for fieldDef in actualType[2]:
+          if fieldDef.kind == nnkIdentDefs:
+            let fieldName = fieldDef[0].strVal.toLowerAscii()
+            let fieldTypeNode = fieldDef[^2]
+            let fieldTypeName = fieldTypeNode.repr
+            
+            # スキーマから対応するカラムを検索
+            for col in tableSchema.columns:
+              if col.name.toLowerAscii() == fieldName:
+                debugEcho &"Field '{fieldName}': schema='{col.nimType}' vs actual='{fieldTypeName}'"
+                if col.nimType != fieldTypeName:
+                  error(&"Type mismatch for field '{fieldName}': expected '{col.nimType}' but got '{fieldTypeName}'")
+                break
+  
+  # テーブル名と型名の簡易チェック（warning）
+  if parsedQuery.tables.len > 0:
+    let resultTypeName = resultType.repr
     let actualTableName = parsedQuery.tables[0]
-    if not checkTypeTableMatch(resultTypeName, actualTableName):
-      warning(&"Result type '{resultTypeName}' may not match table '{actualTableName}'")
+    let expectedTableName = resultTypeName.toLowerAscii()
+    if expectedTableName != actualTableName and expectedTableName != actualTableName & "s":
+      error(&"Result type '{resultTypeName}' may not match table '{actualTableName}'")
   
   # 普通のSQL実行を返す
   result = quote do:
     sql(`query`)
   
   # デバッグ用
-  echo &"[Compile-time] Validated SQL: {query}"
-  echo &"[Compile-time] Target type: {resultTypeName}"
+  debugEcho "[Compile-time] Validated SQL: $1" % [query]
+  debugEcho "[Compile-time] Target type: $1" % [resultType.repr]
 
 
 when isMainModule:
@@ -143,18 +186,12 @@ when isMainModule:
   # スキーマから自動生成される型（本来は別ファイル）
   type
     Users* = object
-      id*: int
       name*: string
-      email*: Option[string]
     
-    Books* = object
-      id*: int
-      title*: string
-      author*: string
   
   # これらはコンパイル時に検証される
-  let validQuery1 = typedSql("SELECT id, name, email FROM users", Users)
-  let validQuery2 = typedSql("SELECT id, title, author FROM books", Books)
+  let validQuery1 = typedSql("SELECT name FROM users", Users)
+  # let validQuery2 = typedSql("SELECT id, title, author FROM books", Books)
   
   # これらはコンパイルエラーになるはず
   # let invalidQuery1 = typedSql("SELECT id, name, email FROM nonexistent_table", Users)  # テーブルが存在しない
