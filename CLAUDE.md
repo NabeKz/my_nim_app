@@ -121,3 +121,7 @@ The application follows a domain-driven design with clear separation between bus
 - `parseOrNone` - Parse value or return None if invalid
 - `findAndTransform` - Find element and apply transformation
 - `validateThenApply` - Validate input then apply function
+
+### Coding Rules
+
+- コードを書く場合はforとifを組み合わせたネストは2段までになるように書いてください。これをコーディングのルールにしてください。

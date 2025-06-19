@@ -8,6 +8,29 @@ import std/options
 import db_connector/db_sqlite
 import schema_parser
 
+# 宣言的プログラミング用ヘルパー
+func orDefault[T](opt: Option[T], default: T): T =
+  if opt.isSome: opt.get else: default
+
+func orDefault[T](arr: seq[T], default: seq[T]): seq[T] =
+  if arr.len > 0: arr else: default
+
+func getAtOrDefault[T](arr: seq[T], index: int, default: T): T =
+  if index < arr.len: arr[index] else: default
+
+# エラーメッセージ生成関数
+func tableNotFoundMsg*(table: string): string =
+  &"Table '{table}' not found"
+
+func columnNotFoundMsg*(column, table: string): string =
+  &"Column '{column}' not found in {table}"
+
+func fieldTypeMismatchMsg*(field, expected, actual: string): string =
+  &"Field '{field}': expected {expected}, got {actual}"
+
+func typeTableMismatchMsg*(typeName, table: string): string =
+  &"Type '{typeName}' may not match table '{table}'"
+
 # コンパイル時にスキーマ情報を保持
 const SCHEMA_FILE = "generated_schema.nim"
 
@@ -53,15 +76,9 @@ func extractTableFromQuery(cleanQuery: string): Option[string] =
     none(string)
 
 func extractColumnsFromSelect(cleanQuery: string): seq[string] =
-  let fromPos = cleanQuery.find(" FROM ")
-  if fromPos == -1:
-    return @[]
-  
-  let selectPart = cleanQuery[6..<fromPos].strip()
-  if selectPart == "*":
-    @[]
-  else:
-    selectPart.split(",").mapIt(it.strip().toLowerAscii()).filterIt(it.len > 0)
+  let parts = cleanQuery.rsplit(" FROM ", maxsplit = 1)
+  let selectPart = parts[0][6..^1].strip()  # "SELECT "を除去
+  selectPart.split(",").mapIt(it.strip().toLowerAscii()).filterIt(it.len > 0)
 
 func parseSimpleQuery(query: string): ParsedQuery =
   let cleanQuery = query.toUpperAscii().strip()
@@ -93,32 +110,44 @@ func validateColumnsExist(columns: seq[string], tableName: string, schema: Datab
   columns.filterIt(it notin schemaColumns)
 
 
+func extractActualType(resultType: NimNode): NimNode =
+  let typeImpl = resultType.getTypeImpl()
+  if typeImpl.kind == nnkBracketExpr and typeImpl.len > 1:
+    typeImpl[1].getTypeImpl()
+  else:
+    typeImpl
+
+func extractTypeFields(actualType: NimNode): seq[tuple[name: string, typeName: string]] =
+  if actualType.kind != nnkObjectTy or actualType[2].kind != nnkRecList:
+    return @[]
+  
+  var fields: seq[tuple[name: string, typeName: string]] = @[]
+  for fieldDef in actualType[2]:
+    if fieldDef.kind == nnkIdentDefs:
+      let fieldName = fieldDef[0].strVal.toLowerAscii()
+      let fieldTypeName = fieldDef[^2].repr
+      fields.add((fieldName, fieldTypeName))
+  fields
+
+func findSchemaColumn(fieldName: string, tableSchema: TableSchema): Option[ColumnInfo] =
+  for col in tableSchema.columns:
+    if col.name.toLowerAscii() == fieldName:
+      return some(col)
+  none(ColumnInfo)
+
 func validateTypeFieldTypeMatch(resultType: NimNode, tableName: string): void =
   if tableName notin DATABASE_SCHEMA.tables:
     return
     
   let tableSchema = DATABASE_SCHEMA.tables[tableName]
-  let typeImpl = resultType.getTypeImpl()
+  let actualType = extractActualType(resultType)
+  let fields = extractTypeFields(actualType)
   
-  # typedesc[T]の場合、T部分を取得
-  let actualType = if typeImpl.kind == nnkBracketExpr and typeImpl.len > 1:
-    typeImpl[1].getTypeImpl()
-  else:
-    typeImpl
-  
-  if actualType.kind == nnkObjectTy and actualType[2].kind == nnkRecList:
-    for fieldDef in actualType[2]:
-      if fieldDef.kind == nnkIdentDefs:
-        let fieldName = fieldDef[0].strVal.toLowerAscii()
-        let fieldTypeNode = fieldDef[^2]
-        let fieldTypeName = fieldTypeNode.repr
-        
-        # スキーマから対応するカラムを検索
-        for col in tableSchema.columns:
-          if col.name.toLowerAscii() == fieldName:
-            if col.nimType != fieldTypeName:
-              error(&"Type mismatch for field '{fieldName}': expected '{col.nimType}' but got '{fieldTypeName}'")
-            break
+  for field in fields:
+    let columnOpt = findSchemaColumn(field.name, tableSchema)
+    if columnOpt.isSome and columnOpt.get().nimType != field.typeName:
+      let column = columnOpt.get()
+      error(fieldTypeMismatchMsg(field.name, column.nimType, field.typeName))
 
 func validateTypeFieldMatch(selectedColumns: seq[string], resultTypeName: string, tableName: string): seq[string] =
   if selectedColumns.len == 0:  # SELECT * の場合はスキップ
@@ -139,7 +168,7 @@ func validateTypeFieldMatch(selectedColumns: seq[string], resultTypeName: string
 func validateTableTypeNameMatch(resultTypeName: string, tableName: string): void =
   let expectedTableName = resultTypeName.toLowerAscii()
   if expectedTableName != tableName and expectedTableName != tableName & "s":
-    error(&"Result type '{resultTypeName}' may not match table '{tableName}'")
+    error(typeTableMismatchMsg(resultTypeName, tableName))
 
 # コンパイル時SQLクエリ検証マクロ
 macro typedSql*(query: static[string], resultType: typedesc): untyped =
@@ -149,7 +178,7 @@ macro typedSql*(query: static[string], resultType: typedesc): untyped =
   # テーブルの存在確認
   let invalidTables = parsedQuery.tables.filterIt(not validateTableExists(it, DATABASE_SCHEMA))
   for tableName in invalidTables:
-    error(&"Table '{tableName}' does not exist in database schema")
+    error(tableNotFoundMsg(tableName))
   
   # 共通の前処理
   if parsedQuery.tables.len == 0:
@@ -162,11 +191,11 @@ macro typedSql*(query: static[string], resultType: typedesc): untyped =
   # 各種バリデーション
   let invalidColumns = validateColumnsExist(parsedQuery.columns, tableName, DATABASE_SCHEMA)
   for colName in invalidColumns:
-    error(&"Column '{colName}' does not exist in table '{tableName}'")
+    error(columnNotFoundMsg(colName, tableName))
   
   let invalidFields = validateTypeFieldMatch(parsedQuery.columns, resultTypeName, tableName)
   for fieldName in invalidFields:
-    error(&"Selected column '{fieldName}' not found in table '{tableName}'")
+    error(columnNotFoundMsg(fieldName, tableName))
   
   validateTypeFieldTypeMatch(resultType, tableName)
   validateTableTypeNameMatch(resultTypeName, tableName)
