@@ -97,13 +97,8 @@ func parseSimpleQuery(query: string): ParsedQuery =
   else:
     ParsedQuery(queryType: qtSelect, tables: @[], columns: @[], whereColumns: @[])
 
-func validateTableExists(tableName: string, schema: DatabaseSchema): bool =
-  tableName in schema.tables
 
 func validateColumnsExist(columns: seq[string], tableName: string, schema: DatabaseSchema): seq[string] =
-  if tableName notin schema.tables:
-    return columns
-  
   let tableSchema = schema.tables[tableName]
   let schemaColumns = tableSchema.columns.mapIt(it.name.toLowerAscii())
   
@@ -176,14 +171,9 @@ macro typedSql*(query: static[string], resultType: typedesc): untyped =
   let parsedQuery = parseSimpleQuery(query)
   
   # テーブルの存在確認
-  let invalidTables = parsedQuery.tables.filterIt(not validateTableExists(it, DATABASE_SCHEMA))
+  let invalidTables = parsedQuery.tables.filterIt(it notin DATABASE_SCHEMA.tables)
   for tableName in invalidTables:
-    error(tableNotFoundMsg(tableName))
-  
-  # 共通の前処理
-  if parsedQuery.tables.len == 0:
-    result = quote do: sql(`query`)
-    return
+    error tableNotFoundMsg(tableName)
   
   let tableName = parsedQuery.tables[0]
   let resultTypeName = resultType.repr
@@ -191,11 +181,11 @@ macro typedSql*(query: static[string], resultType: typedesc): untyped =
   # 各種バリデーション
   let invalidColumns = validateColumnsExist(parsedQuery.columns, tableName, DATABASE_SCHEMA)
   for colName in invalidColumns:
-    error(columnNotFoundMsg(colName, tableName))
+    error columnNotFoundMsg(colName, tableName)
   
   let invalidFields = validateTypeFieldMatch(parsedQuery.columns, resultTypeName, tableName)
   for fieldName in invalidFields:
-    error(columnNotFoundMsg(fieldName, tableName))
+    error columnNotFoundMsg(fieldName, tableName)
   
   validateTypeFieldTypeMatch(resultType, tableName)
   validateTableTypeNameMatch(resultTypeName, tableName)
