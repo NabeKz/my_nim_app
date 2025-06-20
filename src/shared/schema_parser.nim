@@ -27,12 +27,8 @@ type
     constraints*: set[ColumnConstraint]
     defaultValue*: Option[string]
 
-  TableSchema* = object
-    name*: string
-    columns*: seq[ColumnInfo]
-
   DatabaseSchema* = object
-    tables*: Table[string, TableSchema]
+    tables*: Table[string, seq[ColumnInfo]]
 
 func parseColumnType(typeStr: string): SqliteType =
   let upperType = typeStr.toUpperAscii().strip()
@@ -72,7 +68,7 @@ func parseColumnDef(colDef: string): ColumnInfo =
   let constraints = parseConstraints(colDef)
   ColumnInfo(name: colName, sqliteType: colType, constraints: constraints)
 
-proc parseCreateTableStatement(createSql: string): TableSchema =
+proc parseCreateTableStatement(createSql: string): (string, seq[ColumnInfo]) =
   # CREATE TABLE文をパースしてテーブルスキーマを抽出
   let cleanSql = createSql.multiReplace([("\n", " "), ("\t", " ")])
   
@@ -82,8 +78,6 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
   var matches : array[1, string]
   if cleanSql.match(tableNamePattern, matches):
     tableName = matches[0]
-  
-  result = TableSchema(name: tableName, columns: @[])
   
   # カラム定義部分を抽出（括弧内の内容）
   let startIdx = cleanSql.find('(')
@@ -95,24 +89,20 @@ proc parseCreateTableStatement(createSql: string): TableSchema =
     @[]
   
   # 各カラム定義をパース
-  result.columns = columns.filterIt(isColumnDefinition(it)).mapIt(parseColumnDef(it))
+  let parsedColumns = columns.filterIt(isColumnDefinition(it)).mapIt(parseColumnDef(it))
+  (tableName, parsedColumns)
 
 
-# ヘルパー関数: 有効なテーブルスキーマかチェック
-func isValidTableSchema(tableSchema: TableSchema): bool =
-  tableSchema.name.len > 0
-
-# ヘルパー関数: テーブルスキーマをタプルに変換
-func toTablePair(tableSchema: TableSchema): (string, TableSchema) =
-  (tableSchema.name, tableSchema)
+# ヘルパー関数: 有効なテーブルかチェック
+func isValidTable(tablePair: (string, seq[ColumnInfo])): bool =
+  tablePair[0].len > 0
 
 # sqlite_masterクエリ結果から直接解析（関数型スタイル）
 proc parseSchemaFromCreateStatements*(createStatements: seq[string]): DatabaseSchema =
   let tables = createStatements
     .filterIt(it.strip().len > 0)
     .mapIt(parseCreateTableStatement(it))
-    .filterIt(isValidTableSchema(it))
-    .mapIt(toTablePair(it))
+    .filterIt(isValidTable(it))
     .toTable
   
   DatabaseSchema(tables: tables)
@@ -136,10 +126,10 @@ func sqliteTypeToNimType(sqliteType: SqliteType, constraints: set[ColumnConstrai
   else:
     "Option[" & baseType & "]"
 
-func generateNimTypeDefinition(schema: TableSchema): string =
-  result = &"type\n  {schema.name.capitalizeAscii()}* = ref object\n"
+func generateNimTypeDefinition(tableName: string, columns: seq[ColumnInfo]): string =
+  result = &"type\n  {tableName.capitalizeAscii()}* = ref object\n"
   
-  for col in schema.columns:
+  for col in columns:
     let nimType = sqliteTypeToNimType(col.sqliteType, col.constraints)
     result.add(&"    {col.name}*: {nimType}\n")
 
@@ -147,8 +137,8 @@ func generateAllNimTypes*(dbSchema: DatabaseSchema): string =
   result = "# Auto-generated from database schema\n\n"
   result.add("import std/options\n\n")
   
-  for tableName, tableSchema in dbSchema.tables:
-    result.add(generateNimTypeDefinition(tableSchema))
+  for tableName, columns in dbSchema.tables:
+    result.add(generateNimTypeDefinition(tableName, columns))
     result.add("\n")
 
 when isMainModule:
@@ -180,12 +170,12 @@ CREATE TABLE user_books (
 
   echo "=== Schema Parser Test ==="
   
-  let dbSchema = parseSchemaFromSqliteOutput(testSchema)
+  let dbSchema = parseSchemaFromCreateStatements(@[testSchema])
   
   echo "Parsed tables:"
-  for tableName, tableSchema in dbSchema.tables:
+  for tableName, columns in dbSchema.tables:
     echo &"  Table: {tableName}"
-    for col in tableSchema.columns:
+    for col in columns:
       echo &"    {col.name}: {col.sqliteType} {col.constraints}"
   
   echo "\n=== Generated Nim Types ==="

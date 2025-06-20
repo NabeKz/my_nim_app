@@ -36,18 +36,14 @@ const SCHEMA_FILE = "generated_schema.nim"
 
 # コンパイル時にスキーマを読み込む（実際の実装では外部ファイルから）
 const DATABASE_SCHEMA = block:
-  var schema = DatabaseSchema(tables: initTable[string, TableSchema]())
+  var schema = DatabaseSchema(tables: initTable[string, seq[ColumnInfo]]())
   
   # サンプルスキーマ（実際は外部ファイルから読み込み）
-  schema.tables["users"] = TableSchema(
-    name: "users",
-    columns: @[
-      ColumnInfo(name: "id", sqliteType: stInteger, nimType: "int", constraints: {ccPrimaryKey}),
-      ColumnInfo(name: "name", sqliteType: stText, nimType: "string", constraints: {ccNotNull}),
-      ColumnInfo(name: "email", sqliteType: stText, nimType: "string", constraints: {ccUnique})
-    ]
-  )
-  
+  schema.tables["users"] = @[
+    ColumnInfo(name: "id", sqliteType: stInteger, nimType: "int", constraints: {ccPrimaryKey}),
+    ColumnInfo(name: "name", sqliteType: stText, nimType: "string", constraints: {ccNotNull}),
+    ColumnInfo(name: "email", sqliteType: stText, nimType: "string", constraints: {ccUnique})
+  ]
   
   schema
 
@@ -99,8 +95,8 @@ func parseSimpleQuery(query: string): ParsedQuery =
 
 
 func validateColumnsExist(columns: seq[string], tableName: string, schema: DatabaseSchema): seq[string] =
-  let tableSchema = schema.tables[tableName]
-  let schemaColumns = tableSchema.columns.mapIt(it.name.toLowerAscii())
+  let tableColumns = schema.tables[tableName]
+  let schemaColumns = tableColumns.mapIt(it.name.toLowerAscii())
   
   columns.filterIt(it notin schemaColumns)
 
@@ -124,8 +120,8 @@ func extractTypeFields(actualType: NimNode): seq[tuple[name: string, typeName: s
       fields.add((fieldName, fieldTypeName))
   fields
 
-func findSchemaColumn(fieldName: string, tableSchema: TableSchema): Option[ColumnInfo] =
-  for col in tableSchema.columns:
+func findSchemaColumn(fieldName: string, columns: seq[ColumnInfo]): Option[ColumnInfo] =
+  for col in columns:
     if col.name.toLowerAscii() == fieldName:
       return some(col)
   none(ColumnInfo)
@@ -134,12 +130,12 @@ func validateTypeFieldTypeMatch(resultType: NimNode, tableName: string): void =
   if tableName notin DATABASE_SCHEMA.tables:
     return
     
-  let tableSchema = DATABASE_SCHEMA.tables[tableName]
+  let columns = DATABASE_SCHEMA.tables[tableName]
   let actualType = extractActualType(resultType)
   let fields = extractTypeFields(actualType)
   
   for field in fields:
-    let columnOpt = findSchemaColumn(field.name, tableSchema)
+    let columnOpt = findSchemaColumn(field.name, columns)
     if columnOpt.isSome and columnOpt.get().nimType != field.typeName:
       let column = columnOpt.get()
       error(fieldTypeMismatchMsg(field.name, column.nimType, field.typeName))
@@ -155,7 +151,7 @@ func validateTypeFieldMatch(selectedColumns: seq[string], resultTypeName: string
   
   # テーブルのカラムと選択したカラムを比較
   if tableName in DATABASE_SCHEMA.tables:
-    let tableColumns = DATABASE_SCHEMA.tables[tableName].columns.mapIt(it.name.toLowerAscii())
+    let tableColumns = DATABASE_SCHEMA.tables[tableName].mapIt(it.name.toLowerAscii())
     return selectedColumns.filterIt(it notin tableColumns)
   
   @[]
