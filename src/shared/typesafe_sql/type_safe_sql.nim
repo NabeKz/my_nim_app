@@ -6,46 +6,10 @@ import std/strformat
 import std/options
 
 import db_connector/db_sqlite
-import schema_parser
+import ./schema_parser
+import ./errors
 
-# 宣言的プログラミング用ヘルパー
-func orDefault[T](opt: Option[T], default: T): T =
-  if opt.isSome: opt.get else: default
-
-func orDefault[T](arr: seq[T], default: seq[T]): seq[T] =
-  if arr.len > 0: arr else: default
-
-func getAtOrDefault[T](arr: seq[T], index: int, default: T): T =
-  if index < arr.len: arr[index] else: default
-
-# エラーメッセージ生成関数
-func tableNotFoundMsg*(table: string): string =
-  &"Table '{table}' not found"
-
-func columnNotFoundMsg*(column, table: string): string =
-  &"Column '{column}' not found in {table}"
-
-func fieldTypeMismatchMsg*(field, expected, actual: string): string =
-  &"Field '{field}': expected {expected}, got {actual}"
-
-func typeTableMismatchMsg*(typeName, table: string): string =
-  &"Type '{typeName}' may not match table '{table}'"
-
-# コンパイル時にスキーマ情報を保持
-const SCHEMA_FILE = "generated_schema.nim"
-
-# コンパイル時にスキーマを読み込む（実際の実装では外部ファイルから）
-const DATABASE_SCHEMA = block:
-  var schema = DatabaseSchema(tables: initTable[string, seq[ColumnInfo]]())
-  
-  # サンプルスキーマ（実際は外部ファイルから読み込み）
-  schema.tables["users"] = @[
-    ColumnInfo(name: "id", sqliteType: stInteger, nimType: "int", constraints: {ccPrimaryKey}),
-    ColumnInfo(name: "name", sqliteType: stText, nimType: "string", constraints: {ccNotNull}),
-    ColumnInfo(name: "email", sqliteType: stText, nimType: "string", constraints: {ccUnique})
-  ]
-  
-  schema
+include ./schema
 
 # SQLクエリの解析
 type
